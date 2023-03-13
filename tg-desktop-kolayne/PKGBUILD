@@ -1,0 +1,86 @@
+# Build instructions by Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
+
+# Basic USAGE:
+# 1. Set `pkgver` below to the version number you want to build.
+# 2. Build (as you would with `makepkg`)
+#
+# The build process can be TUNED with the following ENVIRONMENT VARIABLES:
+# - If `$overwrite_checkout` is set (must be a git branch/tag/commit), then that
+#   version is built instead of tag `v$pkgver`.
+# - If `$DONT_CLEAR_CACHE` is set to a non-empty value, the "Cleaning dangling cache"
+#   state is skipped.
+# - If `$LTO` is set to an empty value (e.g. by running `LTO= makepkg`), then
+#   link-time optimization is disabled. In any other case (`$LTO` is unset or set
+#   to a non-empty string), LTO is enabled.
+# - If `$DEBUG` is unset or set to an empty value, then the release version is built.
+#   Otherwise a debug version is built.
+#
+# Also note that after building the package, the script prunes the dangling
+# docker build cache, which may affect other docker builds.
+# More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
+
+pkgname=telegram-desktop-kolayne
+pkgver=4.6.3
+pkgrel=1
+arch=('any')
+pkgdesc='Telegram messaging desktop app built locally'
+license=('GPL')
+depends=('hunspell' 'ffmpeg4.4' 'hicolor-icon-theme' 'lz4' 'minizip' 'openal' 'ttf-opensans' 'qt6-imageformats'
+         'qt6-svg' 'qt6-wayland' 'qt6-5compat' 'xxhash' 'glibmm' 'rnnoise' 'pipewire' 'libxtst' 'libxrandr'
+         'jemalloc' 'abseil-cpp' 'libdispatch')
+makedepends=('docker>=18.09' 'git>=2.18.0' 'python3' 'python-jinja' 'patch')
+optdepends=('webkit2gtk: embedded browser features' 'xdg-desktop-portal: desktop integration')
+provides=('telegram-desktop')
+conflicts=('telegram-desktop')
+
+# When set, forces the script to checkout `$overwrite_checkout`
+# instead of `v$pkgver`
+#overwrite_checkout=origin/master
+
+DOCKER_IMAGE="tdesktop:centos_env"
+
+prepare() {
+    if [[ ! -d "$srcdir/$pkgname" ]]; then
+        git clone --depth 1 https://github.com/telegramdesktop/tdesktop.git "$srcdir/$pkgname"
+    fi
+    cd "$srcdir/$pkgname"
+
+    git fetch --depth 1 origin "${overwrite_checkout:=v$pkgver}" && git remote update origin
+    git checkout "$overwrite_checkout"  # (if unset, then set on the previous line)
+    git submodule update --init --recursive
+}
+
+build() {
+    cd "$srcdir/$pkgname"
+
+    pushd Telegram/build/docker/centos_env/
+    export DOCKER_BUILDKIT=1
+    # Had to add `--ulimit` below due to some `yum`s shit:
+    # https://stackoverflow.com/a/73196257/11248508
+    DEBUG="$DEBUG" LTO="$LTO" python3 gen_dockerfile.py | \
+        docker build . -t "$DOCKER_IMAGE" -f- --ulimit nofile=1024:262144
+    if [[ -z "$DONT_CLEAR_CACHE" ]]; then
+        echo Cleaning dangling cache...
+        docker builder prune -f  # Bad. Affects other docker builds...
+    fi
+    popd
+
+    git am ../../*.patch --no-gpg-sign
+
+    # From the tdesktop docs:
+    docker run --rm -it \
+        -v $PWD:/usr/src/tdesktop \
+        "$DOCKER_IMAGE" \
+        /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
+        -D TDESKTOP_API_ID=611335 \
+        -D TDESKTOP_API_HASH=d524b414d21f4d37f08684c1df41ac9c
+}
+
+package() {
+    install -Dm755 "$srcdir/$pkgname"/out/Release/Telegram "$pkgdir"/usr/bin/telegram-desktop
+    install -Dm644 "$srcdir/$pkgname"/lib/xdg/org.telegram.desktop.desktop "$pkgdir"/usr/share/applications/telegramdesktop.desktop
+    for dim in 16 32 128 256 512; do
+        install -Dm644 "$srcdir/$pkgname"/Telegram/Telegram/Images.xcassets/Icon.iconset/icon_${dim}x${dim}.png \
+                       "$pkgdir"/usr/share/icons/hicolor/${dim}x${dim}/apps/telegram.png
+    done
+}
