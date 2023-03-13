@@ -1,0 +1,87 @@
+# Initially taken from https://github.com/archlinux/svntogit-community/blob/master/mpv/repos/community-x86_64/PKGBUILD
+
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Eivind Uggedal <eivind@uggedal.com>
+# Modified by Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
+
+_pkgname=mpv
+pkgname=$_pkgname-kolayne
+epoch=1
+_tag='5ae02ccad10542a74b397e39800ec01def0db4e1' # git rev-parse v${pkgver}
+pkgver=0.35.1
+pkgrel=3
+pkgdesc='a free, open source, and cross-platform media player (git version, patched by kolayne)'
+arch=('x86_64')
+# We link against libraries that are licensed GPLv3 explicitly, so our
+# package is GPLv3 only as well. (Is this still correct?)
+license=('GPL3')
+url='https://mpv.io/'
+depends=('alsa-lib' 'libasound.so' 'desktop-file-utils' 'ffmpeg' 'libavcodec.so' 'libavdevice.so'
+         'libavfilter.so' 'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so'
+         'glibc' 'hicolor-icon-theme' 'jack' 'libjack.so' 'lcms2' 'liblcms2.so' 'libarchive'
+         'libarchive.so' 'libass' 'libass.so' 'libbluray' 'libbluray.so' 'libcdio'
+         'libcdio-paranoia' 'libdrm' 'libdvdnav' 'libdvdread' 'libegl' 'libgl' 'libglvnd'
+         'libjpeg' 'libjpeg.so' 'libplacebo' 'libplacebo.so' 'libpulse' 'libpulse.so'
+         'libva' 'libva.so' 'libva-drm.so' 'libva-wayland.so' 'libva-x11.so' 'libvdpau' 'libx11'
+         'libxext' 'libxinerama' 'libxkbcommon' 'libxkbcommon.so' 'libxpresent' 'libxrandr' 'libxss'
+         'libxv' 'luajit' 'mesa' 'mujs' 'libpipewire' 'rubberband' 'librubberband.so' 'shaderc'
+         'libshaderc_shared.so' 'uchardet' 'vulkan-icd-loader' 'wayland' 'zlib')
+makedepends=('git' 'meson' 'python-docutils' 'ladspa' 'wayland-protocols'
+             'ffnvcodec-headers' 'vulkan-headers')
+optdepends=('yt-dlp: for video-sharing websites playback'
+            'youtube-dl: for video-sharing websites playback')
+provides=('libmpv.so' "$_pkgname")
+conflicts=("$_pkgname")
+options=('!emptydirs')
+validpgpkeys=('145077D82501AA20152CACCE8D769208D5E31419') # sfan5 <sfan5@live.de>
+source=("git+https://github.com/mpv-player/mpv.git#tag=${_tag}"
+        "495-updated.patch")
+sha256sums=('SKIP'
+            '4198033cca23abf996e80b1cec9ef7c8e898b0144df9593aebf174f63e6121c9')
+
+# Taken from PKGBUILD of mpv-git
+pkgver() {
+  cd "$srcdir/$_pkgname"
+  ./version.py | sed s/-/_/g
+}
+
+build() {
+
+  local _meson_options=(
+    --auto-features auto
+
+    -Dlibmpv=true
+
+    -Dcaca=disabled
+    -Dcdda=enabled
+    -Ddvbin=enabled
+    -Ddvdnav=enabled
+    -Dlibarchive=enabled
+  )
+
+  pushd "$srcdir/$_pkgname" >/dev/null
+  git am ../../495-updated.patch
+  popd >/dev/null
+
+  arch-meson "${_pkgname}" build "${_meson_options[@]}"
+
+  meson compile -C build
+}
+
+check() {
+  meson test -C build
+}
+
+package() {
+  meson install -C build --destdir "${pkgdir}"
+
+  # delete private entries only required for static linking 
+  sed -i -e '/Requires.private/d' -e '/Libs.private/d' "${pkgdir}"/usr/lib/pkgconfig/mpv.pc
+
+  install -m0644 "${_pkgname}"/DOCS/{encoding.rst,tech-overview.txt} \
+    "${pkgdir}"/usr/share/doc/mpv
+
+  install -m0644 "${_pkgname}"/TOOLS/lua/* \
+    -D -t "${pkgdir}"/usr/share/mpv/scripts
+}
