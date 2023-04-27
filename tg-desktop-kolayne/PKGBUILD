@@ -20,7 +20,7 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=4.6.3
+pkgver=4.8.1
 pkgrel=1
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
@@ -35,19 +35,19 @@ conflicts=('telegram-desktop')
 
 # When set, forces the script to checkout `$overwrite_checkout`
 # instead of `v$pkgver`
-#overwrite_checkout=origin/master
+#overwrite_checkout=origin/dev
 
 DOCKER_IMAGE="tdesktop:centos_env"
 
 prepare() {
     if [[ ! -d "$srcdir/$pkgname" ]]; then
-        git clone --depth 1 https://github.com/telegramdesktop/tdesktop.git "$srcdir/$pkgname"
+        git clone --depth 1 --shallow-submodules https://github.com/telegramdesktop/tdesktop.git "$srcdir/$pkgname"
     fi
     cd "$srcdir/$pkgname"
 
     git fetch --depth 1 origin "${overwrite_checkout:=v$pkgver}" && git remote update origin
     git checkout "$overwrite_checkout"  # (if unset, then set on the previous line)
-    git submodule update --init --recursive
+    git submodule update --init --recursive --recommend-shallow
 }
 
 build() {
@@ -55,7 +55,7 @@ build() {
 
     pushd Telegram/build/docker/centos_env/
     export DOCKER_BUILDKIT=1
-    # Had to add `--ulimit` below due to some `yum`s shit:
+    # Had to add `--ulimit` below due to some `yum`'s shit:
     # https://stackoverflow.com/a/73196257/11248508
     DEBUG="$DEBUG" LTO="$LTO" python3 gen_dockerfile.py | \
         docker build . -t "$DOCKER_IMAGE" -f- --ulimit nofile=1024:262144
