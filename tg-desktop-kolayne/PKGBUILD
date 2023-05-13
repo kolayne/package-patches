@@ -21,7 +21,7 @@
 
 pkgname=telegram-desktop-kolayne
 pkgver=4.8.1
-pkgrel=1
+pkgrel=2
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
