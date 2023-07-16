@@ -8,9 +8,8 @@
 _pkgname=mpv
 pkgname=$_pkgname-kolayne
 epoch=1
-_tag='5ae02ccad10542a74b397e39800ec01def0db4e1' # git rev-parse v${pkgver}
-pkgver=0.35.1
-pkgrel=3
+pkgver=0.35.0_543_g580f36e436
+pkgrel=1
 pkgdesc='a free, open source, and cross-platform media player (git version, patched by kolayne)'
 arch=('x86_64')
 # We link against libraries that are licensed GPLv3 explicitly, so our
@@ -35,7 +34,7 @@ provides=('libmpv.so' "$_pkgname")
 conflicts=("$_pkgname")
 options=('!emptydirs')
 validpgpkeys=('145077D82501AA20152CACCE8D769208D5E31419') # sfan5 <sfan5@live.de>
-source=("git+https://github.com/mpv-player/mpv.git#tag=${_tag}"
+source=("git+https://github.com/mpv-player/mpv.git"
         "495-updated.patch")
 sha256sums=('SKIP'
             '4198033cca23abf996e80b1cec9ef7c8e898b0144df9593aebf174f63e6121c9')
