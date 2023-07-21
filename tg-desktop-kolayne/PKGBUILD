@@ -20,7 +20,7 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=4.8.1
+pkgver=4.8.5
 pkgrel=2
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
@@ -72,6 +72,7 @@ build() {
         -v $PWD:/usr/src/tdesktop \
         "$DOCKER_IMAGE" \
         /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
+        -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
         -D TDESKTOP_API_ID=611335 \
         -D TDESKTOP_API_HASH=d524b414d21f4d37f08684c1df41ac9c
 }
