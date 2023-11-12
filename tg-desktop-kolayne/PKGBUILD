@@ -20,8 +20,8 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=4.8.5
-pkgrel=2
+pkgver=4.11.6
+pkgrel=1
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
@@ -45,7 +45,7 @@ prepare() {
     fi
     cd "$srcdir/$pkgname"
 
-    git fetch --depth 1 origin "${overwrite_checkout:=v$pkgver}" && git remote update origin
+    git fetch --prune{,-tags} --depth 1 origin "${overwrite_checkout:=v$pkgver}" && git remote update origin
     git checkout "$overwrite_checkout"  # (if unset, then set on the previous line)
     git submodule update --init --recursive --recommend-shallow
 }
