@@ -1,86 +1,158 @@
-# Initially taken from https://github.com/archlinux/svntogit-community/blob/master/mpv/repos/community-x86_64/PKGBUILD
-
-# Maintainer: Christian Hesse <mail@eworm.de>
-# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
-# Contributor: Eivind Uggedal <eivind@uggedal.com>
+# Based on `mpv-full`
 # Modified by Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
 
+# Maintainer: Daniel Bermond <dbermond@archlinux.org>
+
 _pkgname=mpv
-pkgname=$_pkgname-kolayne
-epoch=1
-pkgver=0.35.0_543_g580f36e436
+pkgname=mpv-full-kolayne
+pkgver=0.37.0
 pkgrel=1
-pkgdesc='a free, open source, and cross-platform media player (git version, patched by kolayne)'
+pkgdesc='A free, open source, and cross-platform media player (with all possible libs)'
 arch=('x86_64')
-# We link against libraries that are licensed GPLv3 explicitly, so our
-# package is GPLv3 only as well. (Is this still correct?)
-license=('GPL3')
+license=('GPL')
 url='https://mpv.io/'
-depends=('alsa-lib' 'libasound.so' 'desktop-file-utils' 'ffmpeg' 'libavcodec.so' 'libavdevice.so'
-         'libavfilter.so' 'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so'
-         'glibc' 'hicolor-icon-theme' 'jack' 'libjack.so' 'lcms2' 'liblcms2.so' 'libarchive'
-         'libarchive.so' 'libass' 'libass.so' 'libbluray' 'libbluray.so' 'libcdio'
-         'libcdio-paranoia' 'libdrm' 'libdvdnav' 'libdvdread' 'libegl' 'libgl' 'libglvnd'
-         'libjpeg' 'libjpeg.so' 'libplacebo' 'libplacebo.so' 'libpulse' 'libpulse.so'
-         'libva' 'libva.so' 'libva-drm.so' 'libva-wayland.so' 'libva-x11.so' 'libvdpau' 'libx11'
-         'libxext' 'libxinerama' 'libxkbcommon' 'libxkbcommon.so' 'libxpresent' 'libxrandr' 'libxss'
-         'libxv' 'luajit' 'mesa' 'mujs' 'libpipewire' 'rubberband' 'librubberband.so' 'shaderc'
-         'libshaderc_shared.so' 'uchardet' 'vulkan-icd-loader' 'wayland' 'zlib')
-makedepends=('git' 'meson' 'python-docutils' 'ladspa' 'wayland-protocols'
-             'ffnvcodec-headers' 'vulkan-headers')
+depends=(
+    # official repositories:
+        'cmocka' 'lcms2' 'libcdio-paranoia' 'libgl' 'libxss'
+        'libxinerama' 'libxv' 'libxkbcommon' 'libva' 'wayland' 'libcaca'
+        'desktop-file-utils' 'hicolor-icon-theme' 'xdg-utils' 'lua52' 'mujs'
+        'libdvdnav' 'libxrandr' 'jack' 'rubberband' 'uchardet' 'libarchive'
+        'zlib' 'vapoursynth' 'openal' 'vulkan-icd-loader' 'shaderc'
+        'libxpresent' 'libpipewire' 'zimg' 'sndio' 'libsixel'
+        'ffmpeg'
+    # AUR:
+        'libplacebo-git' 'spirv-cross'
+)
+makedepends=('meson' 'mesa' 'python-docutils' 'ladspa' 'vulkan-headers'
+             'wayland-protocols' 'ffnvcodec-headers')
 optdepends=('yt-dlp: for video-sharing websites playback'
-            'youtube-dl: for video-sharing websites playback')
-provides=('libmpv.so' "$_pkgname")
-conflicts=("$_pkgname")
+            'youtube-dl: for video-sharing websites playback'
+            'nvidia-utils: for hardware accelerated video decoding with CUDA')
+provides=('mpv')
+conflicts=('mpv')
 options=('!emptydirs')
-validpgpkeys=('145077D82501AA20152CACCE8D769208D5E31419') # sfan5 <sfan5@live.de>
-source=("git+https://github.com/mpv-player/mpv.git"
+source=("https://github.com/mpv-player/mpv/archive/v${pkgver}/mpv-${pkgver}.tar.gz"
         "495-updated.patch")
-sha256sums=('SKIP'
+sha256sums=('1d2d4adbaf048a2fa6ee134575032c4b2dad9a7efafd5b3e69b88db935afaddf'
             '4198033cca23abf996e80b1cec9ef7c8e898b0144df9593aebf174f63e6121c9')
 
-# Taken from PKGBUILD of mpv-git
-pkgver() {
-  cd "$srcdir/$_pkgname"
-  ./version.py | sed s/-/_/g
-}
-
 build() {
+    pushd "$srcdir/$_pkgname" >/dev/null
+    git am ../../495-updated.patch
+    popd >/dev/null
 
-  local _meson_options=(
-    --auto-features auto
-
-    -Dlibmpv=true
-
-    -Dcaca=disabled
-    -Dcdda=enabled
-    -Ddvbin=enabled
-    -Ddvdnav=enabled
-    -Dlibarchive=enabled
-  )
-
-  pushd "$srcdir/$_pkgname" >/dev/null
-  git am ../../495-updated.patch
-  popd >/dev/null
-
-  arch-meson "${_pkgname}" build "${_meson_options[@]}"
-
-  meson compile -C build
-}
-
-check() {
-  meson test -C build
+    arch-meson "mpv-${pkgver}" build \
+        -Dgpl='true' \
+        -Dcplayer='true' \
+        -Dlibmpv='true' \
+        -Dbuild-date='false' \
+        -Dtests='false' \
+        -Dta-leak-report='false' \
+        \
+        -Dcdda='enabled' \
+        -Dcplugins='enabled' \
+        -Ddvbin='enabled' \
+        -Ddvdnav='enabled' \
+        -Diconv='enabled' \
+        -Djavascript='enabled' \
+        -Dlcms2='enabled' \
+        -Dlibarchive='enabled' \
+        -Dlibavdevice='enabled' \
+        -Dlibbluray='enabled' \
+        -Dlua='auto' \
+        \
+        -Dpthread-debug='disabled' \
+        -Drubberband='enabled' \
+        -Dsdl2='enabled' \
+        -Dsdl2-gamepad='enabled' \
+        -Duchardet='enabled' \
+        -Duwp='disabled' \
+        -Dvapoursynth='enabled' \
+        -Dvector='enabled' \
+        -Dwin32-threads='disabled' \
+        -Dzimg='enabled' \
+        -Dzlib='enabled' \
+        \
+        -Dalsa='enabled' \
+        -Daudiounit='disabled' \
+        -Dcoreaudio='disabled' \
+        -Djack='enabled' \
+        -Dopenal='enabled' \
+        -Dopensles='disabled' \
+        -Doss-audio='disabled' \
+        -Dpipewire='enabled' \
+        -Dpulse='enabled' \
+        -Dsdl2-audio='enabled' \
+        -Dsndio='enabled' \
+        -Dwasapi='disabled' \
+        \
+        -Dcaca='enabled' \
+        -Dcocoa='disabled' \
+        -Dd3d11='disabled' \
+        -Ddirect3d='disabled' \
+        -Ddmabuf-wayland='enabled' \
+        -Ddrm='enabled' \
+        -Degl='enabled' \
+        -Degl-android='disabled' \
+        -Degl-angle='disabled' \
+        -Degl-angle-lib='disabled' \
+        -Degl-angle-win32='disabled' \
+        -Degl-drm='enabled' \
+        -Degl-wayland='enabled' \
+        -Degl-x11='enabled' \
+        -Dgbm='enabled' \
+        -Dgl='enabled' \
+        -Dgl-cocoa='disabled' \
+        -Dgl-dxinterop='disabled' \
+        -Dgl-win32='disabled' \
+        -Dgl-x11='enabled' \
+        -Djpeg='enabled' \
+        -Drpi='disabled' \
+        -Dsdl2-video='enabled' \
+        -Dshaderc='enabled' \
+        -Dsixel='enabled' \
+        -Dspirv-cross='enabled' \
+        -Dplain-gl='enabled' \
+        -Dvdpau='enabled' \
+        -Dvdpau-gl-x11='enabled' \
+        -Dvaapi='enabled' \
+        -Dvaapi-drm='enabled' \
+        -Dvaapi-wayland='enabled' \
+        -Dvaapi-x11='enabled' \
+        -Dvulkan='enabled' \
+        -Dwayland='enabled' \
+        -Dx11='enabled' \
+        -Dxv='enabled' \
+        \
+        -Dandroid-media-ndk='disabled' \
+        -Dcuda-hwaccel='enabled' \
+        -Dcuda-interop='enabled' \
+        -Dd3d-hwaccel='disabled' \
+        -Dd3d9-hwaccel='disabled' \
+        -Dgl-dxinterop-d3d9='disabled' \
+        -Dios-gl='disabled' \
+        -Drpi-mmal='disabled' \
+        -Dvideotoolbox-gl='disabled' \
+        -Dvideotoolbox-pl='disabled' \
+        -Dvulkan-interop='enabled' \
+        \
+        -Dmacos-cocoa-cb='disabled' \
+        -Dmacos-media-player='disabled' \
+        -Dmacos-touchbar='disabled' \
+        -Dswift-build='disabled' \
+        -Dswift-flags='disabled' \
+        \
+        -Dhtml-build='disabled' \
+        -Dmanpage-build='enabled' \
+        -Dpdf-build='disabled'
+    meson compile -C build
 }
 
 package() {
-  meson install -C build --destdir "${pkgdir}"
-
-  # delete private entries only required for static linking 
-  sed -i -e '/Requires.private/d' -e '/Libs.private/d' "${pkgdir}"/usr/lib/pkgconfig/mpv.pc
-
-  install -m0644 "${_pkgname}"/DOCS/{encoding.rst,tech-overview.txt} \
-    "${pkgdir}"/usr/share/doc/mpv
-
-  install -m0644 "${_pkgname}"/TOOLS/lua/* \
-    -D -t "${pkgdir}"/usr/share/mpv/scripts
+    meson install -C build --destdir "$pkgdir"
+    install -D -m644 "mpv-${pkgver}/DOCS"/{encoding.rst,tech-overview.txt} "${pkgdir}/usr/share/doc/mpv"
+    install -D -m644 "mpv-${pkgver}/TOOLS/lua"/* -t "${pkgdir}/usr/share/mpv/scripts"
+    
+    # delete private entries only required for static linking
+    sed -i -e '/Requires.private/d' -e '/Libs.private/d' "${pkgdir}/usr/lib/pkgconfig/mpv.pc"
 }
