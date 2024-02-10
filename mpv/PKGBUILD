@@ -1,158 +1,159 @@
-# Based on `mpv-full`
-# Modified by Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
+# Maintainer:  Philip Sequeira <qmega+aur@sksm.net>
+# Contributor: Rudolf Polzer <divVerent@xonotic.org>
+# Contributor: Bartłomiej Piotrowski <nospam@bpiotrowski.pl>
+# Contributor: Eivind Uggedal <eivind@uggedal.com>
+# Adapted by: Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
 
-# Maintainer: Daniel Bermond <dbermond@archlinux.org>
+_opt_features=(
 
-_pkgname=mpv
-pkgname=mpv-full-kolayne
-pkgver=0.37.0
-pkgrel=1
-pkgdesc='A free, open source, and cross-platform media player (with all possible libs)'
-arch=('x86_64')
-license=('GPL')
-url='https://mpv.io/'
-depends=(
-    # official repositories:
-        'cmocka' 'lcms2' 'libcdio-paranoia' 'libgl' 'libxss'
-        'libxinerama' 'libxv' 'libxkbcommon' 'libva' 'wayland' 'libcaca'
-        'desktop-file-utils' 'hicolor-icon-theme' 'xdg-utils' 'lua52' 'mujs'
-        'libdvdnav' 'libxrandr' 'jack' 'rubberband' 'uchardet' 'libarchive'
-        'zlib' 'vapoursynth' 'openal' 'vulkan-icd-loader' 'shaderc'
-        'libxpresent' 'libpipewire' 'zimg' 'sndio' 'libsixel'
-        'ffmpeg'
-    # AUR:
-        'libplacebo-git' 'spirv-cross'
+  # Disabled by default, need to be enabled every build:
+
+  #dvd
+  #cd
+  #sdl2
+  #openal
+
+  # mpv supports lua52 and luajit, and will automatically enable Lua support if
+  # either is installed. If both are installed, it will choose lua52. The choice
+  # is made at compile time and only one of the two can be enabled. The two
+  # options below, when uncommented, will force selection of their respective
+  # implementations even if the other is installed, as well as adding the
+  # appropriate dependency.
+
+  #lua
+  luajit
+
+  # The rest of these are autodetected, and are just provided to set
+  # dependencies the first time you build. If you have the dependencies
+  # installed, subsequent builds will pick them up automatically.
+
+  #javascript
+
+  x11
+  wayland
+
+  #uchardet
+  #rubberband
+
+  # Features disabled by default, but don't require any extra dependencies on an
+  # Arch system:
+
+  dvbin
+
 )
-makedepends=('meson' 'mesa' 'python-docutils' 'ladspa' 'vulkan-headers'
-             'wayland-protocols' 'ffnvcodec-headers')
-optdepends=('yt-dlp: for video-sharing websites playback'
-            'youtube-dl: for video-sharing websites playback'
-            'nvidia-utils: for hardware accelerated video decoding with CUDA')
-provides=('mpv')
+
+# Note: The configure script will automatically enable most optional features it
+# finds support for on your system. The dependencies of the built package will
+# be updated based on dynamic libraries, but if you want to avoid linking
+# against something you have installed, you'll have to disable it in the
+# configure below.
+
+pkgname=mpv-kolayne
+_gitname=mpv
+pkgver=0.37.0_269_gd70c77b6b6
+pkgrel=1
+pkgdesc='Video player based on MPlayer/mplayer2 (git version)'
+arch=('i686' 'x86_64' 'armv6h' 'armv7h' 'aarch64')
+license=('GPL')
+url='https://mpv.io'
+_undetected_depends=('hicolor-icon-theme')
+depends=('ffmpeg' 'libplacebo' "${_undetected_depends[@]}")
+optdepends=('yt-dlp: for video-sharing websites playback (preferred over youtube-dl)'
+            'youtube-dl: for video-sharing websites playback')
+makedepends=('git'
+             'meson'
+             'python-docutils' # for rst2man, to generate manpage
+             'pacman-contrib' # for pactree, used in find-deps.py
+             'vulkan-headers')
+provides=('mpv' 'libmpv.so')
 conflicts=('mpv')
 options=('!emptydirs')
-source=("https://github.com/mpv-player/mpv/archive/v${pkgver}/mpv-${pkgver}.tar.gz"
-        "495-updated.patch")
-sha256sums=('1d2d4adbaf048a2fa6ee134575032c4b2dad9a7efafd5b3e69b88db935afaddf'
-            '4198033cca23abf996e80b1cec9ef7c8e898b0144df9593aebf174f63e6121c9')
+install=mpv.install
+source=('git+https://github.com/mpv-player/mpv'
+        'find-deps.py')
+sha256sums=('SKIP'
+            '1ba780ede4a28b68ae5b7ab839958ff91ed01d3c6c1d24cce8a5dd24492f8d2b')
+
+_opt_extra_flags=()
+
+for feature in "${_opt_features[@]}"; do
+  case "$feature" in
+    dvd)
+      depends+=('libdvdnav')
+      _opt_extra_flags+=('-Ddvdnav=enabled')
+      ;;
+    cd)
+      depends+=('libcdio-paranoia')
+      _opt_extra_flags+=('-Dcdda=enabled')
+      ;;
+    lua)
+      depends+=('lua52')
+      _opt_extra_flags+=('-Dlua=enabled' '-Dlua=lua52')
+      ;;
+    luajit)
+      depends+=('luajit')
+      _opt_extra_flags+=('-Dlua=enabled' '-Dlua=luajit')
+      ;;
+    javascript)
+      depends+=('mujs')
+      _opt_extra_flags+=('-Djavascript=enabled')
+      ;;
+    x11)
+      depends+=('libxinerama' 'libxpresent' 'libxss')
+      _opt_extra_flags+=('-Dx11=enabled')
+      ;;
+    wayland)
+      depends+=('wayland' 'libxkbcommon')
+      makedepends+=('wayland-protocols')
+      _opt_extra_flags+=('-Dwayland=enabled')
+      ;;
+    sdl2|openal|uchardet|rubberband)
+      depends+=("$feature")
+      _opt_extra_flags+=("-D${feature}=enabled")
+      ;;
+    dvbin)
+      _opt_extra_flags+=("-D${feature}=enabled")
+      ;;
+    *)
+      echo "ERROR: Unknown feature option: $feature" >&2
+      exit 1
+  esac
+done
+
+pkgver() {
+  cd "$srcdir/$_gitname"
+  git describe --always --tags --dirty | sed -e 's/^v//' -e 's/-/_/g'
+}
 
 build() {
-    pushd "$srcdir/$_pkgname" >/dev/null
-    git am ../../495-updated.patch
-    popd >/dev/null
+  cd "$srcdir/$_gitname"
 
-    arch-meson "mpv-${pkgver}" build \
-        -Dgpl='true' \
-        -Dcplayer='true' \
-        -Dlibmpv='true' \
-        -Dbuild-date='false' \
-        -Dtests='false' \
-        -Dta-leak-report='false' \
-        \
-        -Dcdda='enabled' \
-        -Dcplugins='enabled' \
-        -Ddvbin='enabled' \
-        -Ddvdnav='enabled' \
-        -Diconv='enabled' \
-        -Djavascript='enabled' \
-        -Dlcms2='enabled' \
-        -Dlibarchive='enabled' \
-        -Dlibavdevice='enabled' \
-        -Dlibbluray='enabled' \
-        -Dlua='auto' \
-        \
-        -Dpthread-debug='disabled' \
-        -Drubberband='enabled' \
-        -Dsdl2='enabled' \
-        -Dsdl2-gamepad='enabled' \
-        -Duchardet='enabled' \
-        -Duwp='disabled' \
-        -Dvapoursynth='enabled' \
-        -Dvector='enabled' \
-        -Dwin32-threads='disabled' \
-        -Dzimg='enabled' \
-        -Dzlib='enabled' \
-        \
-        -Dalsa='enabled' \
-        -Daudiounit='disabled' \
-        -Dcoreaudio='disabled' \
-        -Djack='enabled' \
-        -Dopenal='enabled' \
-        -Dopensles='disabled' \
-        -Doss-audio='disabled' \
-        -Dpipewire='enabled' \
-        -Dpulse='enabled' \
-        -Dsdl2-audio='enabled' \
-        -Dsndio='enabled' \
-        -Dwasapi='disabled' \
-        \
-        -Dcaca='enabled' \
-        -Dcocoa='disabled' \
-        -Dd3d11='disabled' \
-        -Ddirect3d='disabled' \
-        -Ddmabuf-wayland='enabled' \
-        -Ddrm='enabled' \
-        -Degl='enabled' \
-        -Degl-android='disabled' \
-        -Degl-angle='disabled' \
-        -Degl-angle-lib='disabled' \
-        -Degl-angle-win32='disabled' \
-        -Degl-drm='enabled' \
-        -Degl-wayland='enabled' \
-        -Degl-x11='enabled' \
-        -Dgbm='enabled' \
-        -Dgl='enabled' \
-        -Dgl-cocoa='disabled' \
-        -Dgl-dxinterop='disabled' \
-        -Dgl-win32='disabled' \
-        -Dgl-x11='enabled' \
-        -Djpeg='enabled' \
-        -Drpi='disabled' \
-        -Dsdl2-video='enabled' \
-        -Dshaderc='enabled' \
-        -Dsixel='enabled' \
-        -Dspirv-cross='enabled' \
-        -Dplain-gl='enabled' \
-        -Dvdpau='enabled' \
-        -Dvdpau-gl-x11='enabled' \
-        -Dvaapi='enabled' \
-        -Dvaapi-drm='enabled' \
-        -Dvaapi-wayland='enabled' \
-        -Dvaapi-x11='enabled' \
-        -Dvulkan='enabled' \
-        -Dwayland='enabled' \
-        -Dx11='enabled' \
-        -Dxv='enabled' \
-        \
-        -Dandroid-media-ndk='disabled' \
-        -Dcuda-hwaccel='enabled' \
-        -Dcuda-interop='enabled' \
-        -Dd3d-hwaccel='disabled' \
-        -Dd3d9-hwaccel='disabled' \
-        -Dgl-dxinterop-d3d9='disabled' \
-        -Dios-gl='disabled' \
-        -Drpi-mmal='disabled' \
-        -Dvideotoolbox-gl='disabled' \
-        -Dvideotoolbox-pl='disabled' \
-        -Dvulkan-interop='enabled' \
-        \
-        -Dmacos-cocoa-cb='disabled' \
-        -Dmacos-media-player='disabled' \
-        -Dmacos-touchbar='disabled' \
-        -Dswift-build='disabled' \
-        -Dswift-flags='disabled' \
-        \
-        -Dhtml-build='disabled' \
-        -Dmanpage-build='enabled' \
-        -Dpdf-build='disabled'
-    meson compile -C build
+  # Removing build dir, if present, ensures features omitted from the configure
+  # command get their default values, and cleans up after waf if it was
+  # previously used (which can cause the build to fail otherwise).
+  # Downside is wasted recompilation.
+  rm -rf build
+
+  git am ../../495-updated.patch
+
+  meson setup build \
+        --prefix=/usr \
+        --sysconfdir=/etc \
+        --buildtype=plain \
+        --wrap-mode=nodownload \
+        -Dlibmpv=true \
+        "${_opt_extra_flags[@]}"
+
+  meson compile -C build
 }
 
 package() {
-    meson install -C build --destdir "$pkgdir"
-    install -D -m644 "mpv-${pkgver}/DOCS"/{encoding.rst,tech-overview.txt} "${pkgdir}/usr/share/doc/mpv"
-    install -D -m644 "mpv-${pkgver}/TOOLS/lua"/* -t "${pkgdir}/usr/share/mpv/scripts"
-    
-    # delete private entries only required for static linking
-    sed -i -e '/Requires.private/d' -e '/Libs.private/d' "${pkgdir}/usr/lib/pkgconfig/mpv.pc"
+  cd "$srcdir/$_gitname"
+  meson install -C build --no-rebuild --destdir="$pkgdir"
+
+  # Update dependencies automatically based on dynamic libraries
+  _detected_depends=($(python3 "$srcdir"/find-deps.py "$pkgdir"/usr/{bin/mpv,lib/libmpv.so}))
+  echo 'Auto-detected dependencies:'
+  echo "${_detected_depends[@]}" | fold -s -w 79 | sed 's/^/ /'
+  depends=("${_detected_depends[@]}" "${_undetected_depends[@]}")
 }
