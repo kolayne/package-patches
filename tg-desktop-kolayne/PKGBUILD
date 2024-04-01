@@ -33,6 +33,10 @@ optdepends=('webkit2gtk: embedded browser features' 'xdg-desktop-portal: desktop
 provides=('telegram-desktop')
 conflicts=('telegram-desktop')
 
+patches=('0001-Moved-notifications-by-a-constant.patch')
+source=(${patches[@]})
+sha256sums=('11dfbcf3fa8dbaa0f3e819bd48e9955764ec769b50f6052ebf12de2659ece4bb')
+
 # When set, forces the script to checkout `$overwrite_checkout`
 # instead of `v$pkgver`
 #overwrite_checkout=origin/dev
@@ -65,7 +69,9 @@ build() {
     fi
     popd
 
-    git am ../../*.patch --no-gpg-sign
+    for patch in "${patches[@]}"; do
+        git am ../"$patch" --no-gpg-sign
+    done
 
     # From the tdesktop docs:
     docker run --rm -it \
