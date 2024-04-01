@@ -20,8 +20,8 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=4.11.6
-pkgrel=1
+pkgver=4.15.6
+pkgrel=3
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
@@ -33,9 +33,11 @@ optdepends=('webkit2gtk: embedded browser features' 'xdg-desktop-portal: desktop
 provides=('telegram-desktop')
 conflicts=('telegram-desktop')
 
-patches=('0001-Moved-notifications-by-a-constant.patch')
+patches=('0001-Moved-notifications-by-a-constant.patch'
+         '0002-Consider-only-t.me-domain-as-internal.patch')
 source=(${patches[@]})
-sha256sums=('11dfbcf3fa8dbaa0f3e819bd48e9955764ec769b50f6052ebf12de2659ece4bb')
+sha256sums=('11dfbcf3fa8dbaa0f3e819bd48e9955764ec769b50f6052ebf12de2659ece4bb'
+            '0bdb0515fb45ea5a6aab05839fb16ed114d64a3ee88e4290ff4968dceba78027')
 
 # When set, forces the script to checkout `$overwrite_checkout`
 # instead of `v$pkgver`

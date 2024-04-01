@@ -1,0 +1,32 @@
+From 2160b43d2da838b7b10a4fe8cd60b908d1c06ecc Mon Sep 17 00:00:00 2001
+From: Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
+Date: Sun, 31 Mar 2024 21:23:31 +0300
+Subject: [PATCH 2/2] Consider only t.me domain as internal
+
+Require confirmation when following hyperlinks on all domains other than
+t.me, including telegram.org, telegra.ph, etc
+---
+ Telegram/SourceFiles/core/click_handler_types.cpp | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/Telegram/SourceFiles/core/click_handler_types.cpp b/Telegram/SourceFiles/core/click_handler_types.cpp
+index 1c24dc5..67fec75 100644
+--- a/Telegram/SourceFiles/core/click_handler_types.cpp
++++ b/Telegram/SourceFiles/core/click_handler_types.cpp
+@@ -70,12 +70,7 @@ bool UrlRequiresConfirmation(const QUrl &url) {
+ 
+ 	return !regex_match(
+ 		"(^|\\.)("
+-		"telegram\\.(org|me|dog)"
+-		"|t\\.me"
+-		"|te\\.?legra\\.ph"
+-		"|graph\\.org"
+-		"|fragment\\.com"
+-		"|telesco\\.pe"
++		"t\\.me"
+ 		")$",
+ 		url.host(),
+ 		RegExOption::CaseInsensitive);
+-- 
+2.44.0
+

@@ -1,4 +1,4 @@
-From a7ee3b7ae67bed544769e57502c1e0233cc36569 Mon Sep 17 00:00:00 2001
+From 4c48f199052d97286b9b7a4cdc710be0666c4d3b Mon Sep 17 00:00:00 2001
 From: Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
 Date: Sat, 4 Feb 2023 12:19:54 +0300
 Subject: [PATCH 1/2] Moved notifications by a constant
@@ -9,7 +9,7 @@ A dummy patch to change the position of notifications at the bottom
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Telegram/SourceFiles/window/notifications_manager_default.cpp b/Telegram/SourceFiles/window/notifications_manager_default.cpp
-index f68524d..d6c940d 100644
+index 2ce56b1..22f528d 100644
 --- a/Telegram/SourceFiles/window/notifications_manager_default.cpp
 +++ b/Telegram/SourceFiles/window/notifications_manager_default.cpp
 @@ -59,7 +59,7 @@ namespace {
@@ -22,5 +22,5 @@ index f68524d..d6c940d 100644
  }
  
 -- 
-2.40.1
+2.44.0
 
