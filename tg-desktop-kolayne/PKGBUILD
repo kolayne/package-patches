@@ -4,11 +4,11 @@
 # 1. Set `pkgver` below to the version number you want to build.
 # 2. Build (as you would with `makepkg`)
 #
-# The build process can be TUNED with the following ENVIRONMENT VARIABLES:
+# The build process can be ADJUSTED with the following ENVIRONMENT VARIABLES:
 # - If `$overwrite_checkout` is set (must be a git branch/tag/commit), then that
 #   version is built instead of tag `v$pkgver`.
 # - If `$DONT_CLEAR_CACHE` is set to a non-empty value, the "Cleaning dangling cache"
-#   state is skipped.
+#   stage is skipped.
 # - If `$LTO` is set to an empty value (e.g. by running `LTO= makepkg`), then
 #   link-time optimization is disabled. In any other case (`$LTO` is unset or set
 #   to a non-empty string), LTO is enabled.
@@ -16,12 +16,13 @@
 #   Otherwise a debug version is built.
 #
 # Also note that after building the package, the script prunes the dangling
-# docker build cache, which may affect other docker builds.
+# docker build cache (unless `DONT_CLEAR_CACHE`, see above), which may affect other
+# docker builds.
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=4.15.6
-pkgrel=3
+pkgver=5.0.1
+pkgrel=1
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
