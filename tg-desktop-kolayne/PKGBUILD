@@ -5,7 +5,7 @@
 # 2. Build (as you would with `makepkg`)
 #
 # The build process can be ADJUSTED with the following ENVIRONMENT VARIABLES:
-# - If `$override_checkout` is set (must be a git branch/tag/commit, _without_ "origin"),
+# - If `$override_checkout` is set to a git tag or commit (branch is not allowed),
 #   then that version is built instead of tag `v$pkgver`.
 # - If `$DONT_CLEAR_CACHE` is set to a non-empty value, the "Cleaning dangling cache"
 #   stage is skipped.
@@ -42,7 +42,7 @@ sha256sums=('11dfbcf3fa8dbaa0f3e819bd48e9955764ec769b50f6052ebf12de2659ece4bb'
 
 # When set, forces the script to checkout `$override_checkout`
 # instead of `v$pkgver`
-#override_checkout=dev
+#override_checkout=fb444e7dd42985104ec416cdc3545c554694017b
 
 DOCKER_IMAGE="tdesktop:centos_env"
 
@@ -53,7 +53,7 @@ prepare() {
     cd "$srcdir/$pkgname"
 
     git fetch --prune{,-tags} --depth 1 origin "${override_checkout:=v$pkgver}" && git remote update origin
-    git checkout "$override_checkout"  # (if unset, then set on the previous line)
+    git checkout "$override_checkout"  # (if `override_checkout` was not set, then set on the previous line)
     git submodule update --init --recursive --recommend-shallow
 }
 
