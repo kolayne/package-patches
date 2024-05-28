@@ -21,7 +21,7 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=5.0.1
+pkgver=5.0.3
 pkgrel=1
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
@@ -47,13 +47,17 @@ sha256sums=('11dfbcf3fa8dbaa0f3e819bd48e9955764ec769b50f6052ebf12de2659ece4bb'
 DOCKER_IMAGE="tdesktop:centos_env"
 
 prepare() {
+    # Set `override_checkout` to `v$pkgver` if unset
+    override_checkout="${override_checkout:=v$pkgver}"
+
     if [[ ! -d "$srcdir/$pkgname" ]]; then
         git clone --depth 1 --shallow-submodules https://github.com/telegramdesktop/tdesktop.git "$srcdir/$pkgname"
     fi
     cd "$srcdir/$pkgname"
 
-    git fetch --prune{,-tags} --depth 1 origin "${override_checkout:=v$pkgver}" && git remote update origin
-    git checkout "$override_checkout"  # (if `override_checkout` was not set, then set on the previous line)
+    git fetch --prune{,-tags} --depth 1 origin "$override_checkout"
+    git remote update origin  # Accept remote tags locally
+    git checkout "$override_checkout"
     git submodule update --init --recursive --recommend-shallow
 }
 
