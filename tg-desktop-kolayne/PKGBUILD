@@ -21,15 +21,16 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=5.0.3
+pkgver=5.1.6
 pkgrel=1
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
-depends=('hunspell' 'ffmpeg4.4' 'hicolor-icon-theme' 'lz4' 'minizip' 'openal' 'ttf-opensans' 'qt6-imageformats'
-         'qt6-svg' 'qt6-wayland' 'qt6-5compat' 'xxhash' 'glibmm' 'rnnoise' 'pipewire' 'libxtst' 'libxrandr'
-         'jemalloc' 'abseil-cpp' 'libdispatch')
-makedepends=('docker>=18.09' 'git>=2.18.0' 'python3' 'python-jinja' 'patch')
+depends=('hunspell' 'ffmpeg' 'hicolor-icon-theme' 'lz4' 'minizip' 'openal'
+         'qt6-imageformats' 'qt6-svg' 'qt6-wayland' 'xxhash'
+         'rnnoise' 'pipewire' 'libxtst' 'libxrandr' 'libxcomposite' 'libxdamage' 'abseil-cpp'
+         'libdispatch' 'openssl' 'protobuf' 'glib2' 'libsigc++-3.0' 'kcoreaddons')
+makedepends=('docker>=18.09' 'docker-buildx' 'git>=2.18.0' 'python3' 'python-jinja' 'patch')
 optdepends=('webkit2gtk: embedded browser features' 'xdg-desktop-portal: desktop integration')
 provides=('telegram-desktop')
 conflicts=('telegram-desktop')
