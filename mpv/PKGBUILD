@@ -50,7 +50,7 @@ _opt_features=(
 
 pkgname=mpv-kolayne
 _gitname=mpv
-pkgver=0.37.0_269_gd70c77b6b6
+pkgver=0.38.0_567_g68a1a3879c
 pkgrel=1
 pkgdesc='Video player based on MPlayer/mplayer2 (git version)'
 arch=('i686' 'x86_64' 'armv6h' 'armv7h' 'aarch64')
@@ -70,9 +70,11 @@ conflicts=('mpv')
 options=('!emptydirs')
 install=mpv.install
 source=('git+https://github.com/mpv-player/mpv'
-        'find-deps.py')
+        'find-deps.py'
+        '495-updated.patch')
 sha256sums=('SKIP'
-            '1ba780ede4a28b68ae5b7ab839958ff91ed01d3c6c1d24cce8a5dd24492f8d2b')
+            '1ba780ede4a28b68ae5b7ab839958ff91ed01d3c6c1d24cce8a5dd24492f8d2b'
+            '77f80db121371680127c91bff731391087983fd5ab37008227bb6280b3a13be3')
 
 _opt_extra_flags=()
 
@@ -134,7 +136,7 @@ build() {
   # Downside is wasted recompilation.
   rm -rf build
 
-  git am ../../495-updated.patch
+  git am ../495-updated.patch
 
   meson setup build \
         --prefix=/usr \
