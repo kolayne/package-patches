@@ -9,6 +9,9 @@
 #   then that version is built instead of tag `v$pkgver`.
 # - If `$DONT_CLEAR_CACHE` is set to a non-empty value, the "Cleaning dangling cache"
 #   stage is skipped.
+#
+# Affects compilation flags for dependencies (but not the target of a final
+# cmake build):
 # - If `$LTO` is set to an empty value (e.g. by running `LTO= makepkg`), then
 #   link-time optimization is disabled. In any other case (`$LTO` is unset or set
 #   to a non-empty string), LTO is enabled.
@@ -21,7 +24,7 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=5.1.6
+pkgver=5.3.0
 pkgrel=1
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
@@ -69,7 +72,7 @@ build() {
     export DOCKER_BUILDKIT=1
     # Had to add `--ulimit` below due to some `yum`'s shit:
     # https://stackoverflow.com/a/73196257/11248508
-    DEBUG="$DEBUG" LTO="$LTO" python3 gen_dockerfile.py | tail -n +2 | \
+    DEBUG="$DEBUG" python3 gen_dockerfile.py | tail -n +2 | \
         docker build . -t "$DOCKER_IMAGE" -f- --ulimit nofile=1024:262144
     if [[ -z "$DONT_CLEAR_CACHE" ]]; then
         echo Cleaning dangling cache...
@@ -84,6 +87,7 @@ build() {
     # From the tdesktop docs:
     docker run --rm -it \
         -v $PWD:/usr/src/tdesktop \
+        -e "CONFIG=Release" \
         "$DOCKER_IMAGE" \
         /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
         -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
@@ -92,7 +96,7 @@ build() {
 }
 
 package() {
-    install -Dm755 "$srcdir/$pkgname"/out/RelWithDebInfo/Telegram "$pkgdir"/usr/bin/telegram-desktop
+    install -Dm755 "$srcdir/$pkgname"/out/Release/Telegram "$pkgdir"/usr/bin/telegram-desktop
     install -Dm644 "$srcdir/$pkgname"/lib/xdg/org.telegram.desktop.desktop "$pkgdir"/usr/share/applications/telegramdesktop.desktop
     for dim in 16 32 128 256 512; do
         install -Dm644 "$srcdir/$pkgname"/Telegram/Telegram/Images.xcassets/Icon.iconset/icon_${dim}x${dim}.png \

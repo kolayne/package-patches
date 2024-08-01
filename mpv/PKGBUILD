@@ -50,8 +50,8 @@ _opt_features=(
 
 pkgname=mpv-kolayne
 _gitname=mpv
-pkgver=0.38.0_567_g68a1a3879c
-pkgrel=1
+pkgver=0.38.0_608_gd15660f4ed
+pkgrel=3
 pkgdesc='Video player based on MPlayer/mplayer2 (git version)'
 arch=('i686' 'x86_64' 'armv6h' 'armv7h' 'aarch64')
 license=('GPL')
