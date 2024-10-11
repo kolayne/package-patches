@@ -24,7 +24,7 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=5.3.0
+pkgver=5.6.1
 pkgrel=1
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
@@ -61,12 +61,16 @@ prepare() {
 
     git fetch --prune{,-tags} --depth 1 origin "$override_checkout"
     git remote update origin  # Accept remote tags locally
-    git checkout "$override_checkout"
+    git checkout "$override_checkout" --force
     git submodule update --init --recursive --recommend-shallow
 }
 
 build() {
     cd "$srcdir/$pkgname"
+
+    for patch in "${patches[@]}"; do
+        git apply ../"$patch"
+    done
 
     pushd Telegram/build/docker/centos_env/
     export DOCKER_BUILDKIT=1
@@ -79,10 +83,6 @@ build() {
         docker builder prune -f  # Bad. Affects other docker builds...
     fi
     popd
-
-    for patch in "${patches[@]}"; do
-        git am ../"$patch" --no-gpg-sign
-    done
 
     # From the tdesktop docs:
     docker run --rm -it \
