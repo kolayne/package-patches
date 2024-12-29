@@ -25,7 +25,7 @@
 
 pkgname=telegram-desktop-kolayne
 pkgver=5.9.2
-pkgrel=6
+pkgrel=7
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
@@ -66,7 +66,7 @@ prepare() {
     git fetch --prune{,-tags} --depth 1 origin "$override_checkout"
     git remote update origin  # Accept remote tags locally
     git checkout "$override_checkout" --force
-    git submodule update --init --recursive --recommend-shallow
+    git submodule update --init --recursive --recommend-shallow --depth 1
 }
 
 build() {
