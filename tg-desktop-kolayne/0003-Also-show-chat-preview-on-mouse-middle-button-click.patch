@@ -1,17 +1,17 @@
-From d5d55f99ca848a8188b8d99dcdfd34bff2c40607 Mon Sep 17 00:00:00 2001
+From 273084663e057500ee5a0433c428f4c27785abe7 Mon Sep 17 00:00:00 2001
 From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
 Date: Wed, 6 Nov 2024 10:58:05 +0300
-Subject: [PATCH 3/3] Also show chat preview on mouse middle button click
+Subject: [PATCH 3/4] Also show chat preview on mouse middle button click
 
 ---
  Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp b/Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp
-index 7d63bb5..6c18e40 100644
+index a668fdd..a4d2a5e 100644
 --- a/Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp
 +++ b/Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp
-@@ -1598,7 +1598,7 @@ void InnerWidget::mousePressEvent(QMouseEvent *e) {
+@@ -1833,7 +1833,7 @@ void InnerWidget::mousePressEvent(QMouseEvent *e) {
  	setSearchedPressed(_searchedSelected);
  	_pressedMorePosts = _selectedMorePosts;
  
@@ -21,5 +21,5 @@ index 7d63bb5..6c18e40 100644
  		return;
  	} else if (!alt && isUserpicPress()) {
 -- 
-2.47.0
+2.47.1
 

@@ -24,8 +24,8 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=5.7.2
-pkgrel=1
+pkgver=5.9.2
+pkgrel=6
 arch=('any')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
@@ -40,11 +40,13 @@ conflicts=('telegram-desktop')
 
 patches=('0001-Moved-notifications-by-a-constant.patch'
          '0002-Consider-only-t.me-domain-as-internal.patch'
-         '0003-Also-show-chat-preview-on-mouse-middle-button-click.patch')
+         '0003-Also-show-chat-preview-on-mouse-middle-button-click.patch'
+         '0004-Implement-fugitive-notifications.patch')
 source=(${patches[@]})
-sha256sums=('d5de1c0edf0d159cac0be51f5c002a37e221e8473e56e28542e574e14df9298e'
-            'b8dffc200f9a6505d685971d7ab600bdca330abc57fa1d8d3e141db631ffaff5'
-            '0d6049441ddfbe76400d992d1168a3bdcf30a6758b28ea68d849afcc9ea264f3')
+sha256sums=('48fbfe738918479018cfa2951f81d9a69a465d21751dd093e0da2684b6decf93'
+            'de84d386a3fdb271953c3c246e3ef2d335610a1ac3ffc755f3ad7fdf2fe0db5a'
+            '867c3ae4fef7e57050e441380de2379db9c8233cc5d6a1578cc726d3145aa3f7'
+            '8c957687da1f15b258eab9527893441a0bf54b9887ab16088c4d429942ae26bf')
 
 # When set, forces the script to checkout `$override_checkout`
 # instead of `v$pkgver`
