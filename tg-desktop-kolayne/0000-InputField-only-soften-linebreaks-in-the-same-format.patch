@@ -1,0 +1,49 @@
+From f66a89518be7185ac4df729e81017a1ec7a88928 Mon Sep 17 00:00:00 2001
+From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
+Date: Sun, 29 Dec 2024 23:33:03 +0300
+Subject: [PATCH] InputField: only soften line breaks inside format tags
+
+In `InputField::PrepareForInsert`, avoid replacing all line break
+characters with `kSoftLine` (aka `QChar::LineSeparator`) because that
+makes the selection behavior inconsistent (different for typed text and
+restored text, e.g., from a draft). Instead, only soften line breaks
+inside formatting tags.
+
+Should fix telegramdesktop/tdesktop#28805
+---
+ Telegram/lib_ui/ui/widgets/fields/input_field.cpp | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/Telegram/lib_ui/ui/widgets/fields/input_field.cpp b/Telegram/lib_ui/ui/widgets/fields/input_field.cpp
+index 91b6f5f..91f8a2a 100644
+--- a/Telegram/lib_ui/ui/widgets/fields/input_field.cpp
++++ b/Telegram/lib_ui/ui/widgets/fields/input_field.cpp
+@@ -1069,11 +1069,6 @@ void ApplyTagFormat(QTextCharFormat &to, const QTextCharFormat &from) {
+ 			text[position] = ch;
+ 		}
+ 	};
+-	for (auto i = 0, length = int(data.text.size()); i != length; ++i) {
+-		if (newline(i)) {
+-			force(i, kSoftLine);
+-		}
+-	}
+ 	for (auto i = data.tags.begin(); i != data.tags.end();) {
+ 		auto &tagStart = *i;
+ 		const auto &id = tagStart.id;
+@@ -1098,6 +1093,13 @@ void ApplyTagFormat(QTextCharFormat &to, const QTextCharFormat &from) {
+ 		}
+ 		auto &tagEnd = *(j - 1);
+ 
++		// Multiple lines in the same formatting tag belong to the same block
++		for (auto c = from; c < till; ++c) {
++			if (newline(c)) {
++				force(c, kSoftLine);
++			}
++		}
++
+ 		if (from > 0 && newline(from - 1)) {
+ 			force(from - 1, kHardLine);
+ 		} else if (newline(from)) {
+-- 
+2.47.1
+
