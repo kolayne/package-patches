@@ -25,7 +25,7 @@
 
 pkgname=telegram-desktop-kolayne
 pkgver=5.10.0
-pkgrel=1
+pkgrel=2
 arch=('x86_64')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
@@ -42,13 +42,21 @@ patches=('0000-InputField-only-soften-linebreaks-in-the-same-format.patch'
          '0001-Moved-notifications-by-a-constant.patch'
          '0002-Consider-only-t.me-domain-as-internal.patch'
          '0003-Also-show-chat-preview-on-mouse-middle-button-click.patch'
-         '0004-Implement-fugitive-notifications.patch')
+         # Keeping room for 0004 for when 0005-0007 are accepted in the upstream
+         '0005-fix-notifications-fade-out-under-cursor.patch'
+         '0006-lib_ui-fix-animations-start-change.patch'
+         '0007-fix-notifications-with-quick-cursor-passes.patch'
+         '0008-Implement-fugitive-notifications.patch')
 source=(${patches[@]})
 sha256sums=('faba5e9fd9694a82c8a461331cebf88bf3f3805aaacb6c1a7faeaaf59285c182'
             '48fbfe738918479018cfa2951f81d9a69a465d21751dd093e0da2684b6decf93'
             'de84d386a3fdb271953c3c246e3ef2d335610a1ac3ffc755f3ad7fdf2fe0db5a'
             '867c3ae4fef7e57050e441380de2379db9c8233cc5d6a1578cc726d3145aa3f7'
-            '8c957687da1f15b258eab9527893441a0bf54b9887ab16088c4d429942ae26bf')
+            # 0004
+            '29fee324ce78869f089902237c8038e684cb1be22726dca6d862c7abd5aa40f3'
+            '1bb6ce5f564c9b7f9e112534d2895d67824a4a5b5c052b2183d72032e63f7486'
+            '17c91ae5f4c605cfaf16c133c490583e2645ba839facd1886674da23e3280a69'
+            '61ea9725d8c2fc14e7c0824204f0d48fe1f39bb97fd17a577e58eedac05ee457')
 
 # When set, forces the script to checkout `$override_checkout`
 # instead of `v$pkgver`

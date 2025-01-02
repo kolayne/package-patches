@@ -1,7 +1,7 @@
-From 12fa5e7188e117594121bb960991dc78a7bc8e82 Mon Sep 17 00:00:00 2001
+From a9e2600d88aed4d24d3422b146c70182a7b610d0 Mon Sep 17 00:00:00 2001
 From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
-Date: Sat, 28 Dec 2024 23:01:32 +0300
-Subject: [PATCH 4/4] Implement fugitive notifications
+Date: Thu, 2 Jan 2025 19:32:53 +0300
+Subject: [PATCH] Implement fugitive notifications
 
 Right-clicking notifications will now cause them to jump to the
 opposite side of the screen (left and right).
@@ -10,20 +10,15 @@ The patch also contains a commented out implementation of the behavior
 when they jump away from the cursor when it hovers them, without the
 need to click.
 ---
- .../window/notifications_manager_default.cpp  | 47 ++++++++++++++++---
- .../window/notifications_manager_default.h    |  7 +++
- 2 files changed, 47 insertions(+), 7 deletions(-)
+ .../window/notifications_manager_default.cpp  | 27 ++++++++++++++++---
+ .../window/notifications_manager_default.h    |  7 +++++
+ 2 files changed, 30 insertions(+), 4 deletions(-)
 
 diff --git a/Telegram/SourceFiles/window/notifications_manager_default.cpp b/Telegram/SourceFiles/window/notifications_manager_default.cpp
-index cb9c10b..51e949b 100644
+index e792ac7ef9..4ac1bbd8de 100644
 --- a/Telegram/SourceFiles/window/notifications_manager_default.cpp
 +++ b/Telegram/SourceFiles/window/notifications_manager_default.cpp
-@@ -43,18 +43,19 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
- #include <QtGui/QGuiApplication>
- #include <QtGui/QScreen>
- 
-+#include <QThread>
-+
+@@ -46,15 +46,14 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
  namespace Window {
  namespace Notifications {
  namespace Default {
@@ -41,15 +36,16 @@ index cb9c10b..51e949b 100644
  	const auto isTop = Core::Settings::IsTopCorner(corner);
  	const auto x = (isLeft == rtl())
  		? (r.x() + r.width() - st::notifyWidth - st::notifyDeltaX)
-@@ -68,14 +69,13 @@ internal::Widget::Direction notificationShiftDirection() {
- 	return isTop ? internal::Widget::Direction::Down : internal::Widget::Direction::Up;
+@@ -63,6 +62,8 @@ namespace {
+ 	return QPoint(x, y);
  }
  
--} // namespace
--
- std::unique_ptr<Manager> Create(System *system) {
- 	return std::make_unique<Manager>(system);
- }
++namespace {
++
+ internal::Widget::Direction notificationShiftDirection() {
+ 	auto isTop = Core::Settings::IsTopCorner(Core::App().settings().notificationsCorner());
+ 	return isTop ? internal::Widget::Direction::Down : internal::Widget::Direction::Up;
+@@ -76,6 +77,7 @@ std::unique_ptr<Manager> Create(System *system) {
  
  Manager::Manager(System *system)
  : Notifications::Manager(system)
@@ -57,7 +53,7 @@ index cb9c10b..51e949b 100644
  , _inputCheckTimer([=] { checkLastInput(); }) {
  	system->settingsChanged(
  	) | rpl::start_with_next([=](ChangeType change) {
-@@ -467,6 +467,11 @@ Manager::~Manager() {
+@@ -461,6 +463,11 @@ Manager::~Manager() {
  	clearAllFast();
  }
  
@@ -69,32 +65,7 @@ index cb9c10b..51e949b 100644
  namespace internal {
  
  Widget::Widget(
-@@ -543,7 +548,23 @@ void Widget::hideStop() {
- 	if (_hiding) {
- 		_hiding = false;
- 		_hidingDelayed = {};
--		_a_opacity.start([this] { opacityAnimationCallback(); }, 0., 1., st::notifyFastAnim);
-+		/*
-+		 * `Notification::isShowing()` does not distinguish between kinds of animations,
-+		 * so it errornously considers its state of fading in as fading out, preventing
-+		 * the manager from fading it out when it should.
-+		 *
-+		 * To fix that, we block `Widget::hideStop` until the animation is complete.
-+		 *
-+		 * Note: I've shortened the animation period from `st::notifyFastAnim` to 1 millisecond.
-+		 * This is probably not necessary, and might work okay even with the default delay. But
-+		 * if you try that, you will have to also increase the sleep in `QThread::msleep` to
-+		 * `st::notifyFastAnim`, and in this case I'd suggest that you move the call to
-+		 * `QThread::msleep` from this method to `Manager::stopAllHiding` so that it only
-+		 * sleeps once rather than once per notification.
-+		 */
-+		//_a_opacity.start([this] { opacityAnimationCallback(); }, 0., 1., st::notifyFastAnim);
-+		_a_opacity.start([this] { opacityAnimationCallback(); }, 0., 1., 1/*millisecond*/);
-+		QThread::msleep(1);
- 	}
- }
- 
-@@ -637,6 +658,8 @@ Notification::Notification(
+@@ -642,6 +649,8 @@ Notification::Notification(
  , _fromScheduled(fromScheduled)
  , _close(this, st::notifyClose)
  , _reply(this, tr::lng_notification_reply(), st::defaultBoxButton) {
@@ -103,7 +74,7 @@ index cb9c10b..51e949b 100644
  	Lang::Updated(
  	) | rpl::start_with_next([=] {
  		refreshLang();
-@@ -1191,11 +1214,21 @@ void Notification::startHiding() {
+@@ -1196,11 +1205,21 @@ void Notification::startHiding() {
  	hideSlow();
  }
  
@@ -127,7 +98,7 @@ index cb9c10b..51e949b 100644
  		e->ignore();
  		manager()->notificationActivated(myId());
 diff --git a/Telegram/SourceFiles/window/notifications_manager_default.h b/Telegram/SourceFiles/window/notifications_manager_default.h
-index 5bd4344..e6d652a 100644
+index 7c81282355..1c7d3dc3a2 100644
 --- a/Telegram/SourceFiles/window/notifications_manager_default.h
 +++ b/Telegram/SourceFiles/window/notifications_manager_default.h
 @@ -45,6 +45,10 @@ public:

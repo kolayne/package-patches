@@ -1,0 +1,107 @@
+From 62589d31edce363dbac5171bf656806e2a0499a1 Mon Sep 17 00:00:00 2001
+From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
+Date: Thu, 2 Jan 2025 17:49:58 +0300
+Subject: [PATCH 1/2] `Manager::startAllHiding`: don't treat fading in
+ notifications differently
+
+Previously, `Window::Notifications::Default::Manager` would not start
+hiding notifications that are fading in when other notifications should
+hide. This would lead to some notifications never hiding, e.g., when the
+cursor passes through the notification too quickly and there was not
+enough time for the notification to fade in completely.
+
+Also renamed `Widget::isShowing` -> `Widget::isFadingIn` for clarity.
+
+Fixes #28811.
+---
+ .../window/notifications_manager_default.cpp           | 10 ++--------
+ .../SourceFiles/window/notifications_manager_default.h |  2 +-
+ 2 files changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/Telegram/SourceFiles/window/notifications_manager_default.cpp b/Telegram/SourceFiles/window/notifications_manager_default.cpp
+index 198418b585..c46b013d6e 100644
+--- a/Telegram/SourceFiles/window/notifications_manager_default.cpp
++++ b/Telegram/SourceFiles/window/notifications_manager_default.cpp
+@@ -188,16 +188,10 @@ void Manager::checkLastInput() {
+ 
+ void Manager::startAllHiding() {
+ 	if (!hasReplyingNotification()) {
+-		int notHidingCount = 0;
+ 		for (const auto &notification : _notifications) {
+-			if (notification->isShowing()) {
+-				++notHidingCount;
+-			} else {
+-				notification->startHiding();
+-			}
++			notification->startHiding();
+ 		}
+-		notHidingCount += _queuedNotifications.size();
+-		if (_hideAll && notHidingCount < 2) {
++		if (_hideAll && _queuedNotifications.size() < 2) {
+ 			_hideAll->startHiding();
+ 		}
+ 	}
+diff --git a/Telegram/SourceFiles/window/notifications_manager_default.h b/Telegram/SourceFiles/window/notifications_manager_default.h
+index 5bd4344d8d..7c81282355 100644
+--- a/Telegram/SourceFiles/window/notifications_manager_default.h
++++ b/Telegram/SourceFiles/window/notifications_manager_default.h
+@@ -143,7 +143,7 @@ public:
+ 		int shift,
+ 		Direction shiftDirection);
+ 
+-	bool isShowing() const {
++	bool isFadingIn() const {
+ 		return _a_opacity.animating() && !_hiding;
+ 	}
+ 
+-- 
+2.47.1
+
+
+From a00fac73603592f895904df52befc9f641e29cfc Mon Sep 17 00:00:00 2001
+From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
+Date: Wed, 1 Jan 2025 11:28:05 +0300
+Subject: [PATCH 2/2] Notifications: fix the use of `.start()`/`.change()`
+ animation methods
+
+When a notification is to stop hiding (i.e., fade in), it is support to
+start fading in from whatever opacity it has at the moment, not from 0.
+Fixed that part to call the `.change()` method instead of `.start()` and
+added a clarification comment.
+
+When a notification is to start hiding (i.e., fade out), it is supposed
+to start fading out from the maximum opacity, even if it was not fully
+restored (which only happens if the cursor passed through the
+notification too quickly). Left the call to `.start()` and added a
+clarification comment.
+---
+ .../SourceFiles/window/notifications_manager_default.cpp   | 7 ++++++-
+ Telegram/lib_ui                                            | 2 +-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/Telegram/SourceFiles/window/notifications_manager_default.cpp b/Telegram/SourceFiles/window/notifications_manager_default.cpp
+index c46b013d6e..9637a18c72 100644
+--- a/Telegram/SourceFiles/window/notifications_manager_default.cpp
++++ b/Telegram/SourceFiles/window/notifications_manager_default.cpp
+@@ -537,12 +537,17 @@ void Widget::hideStop() {
+ 	if (_hiding) {
+ 		_hiding = false;
+ 		_hidingDelayed = {};
+-		_a_opacity.start([this] { opacityAnimationCallback(); }, 0., 1., st::notifyFastAnim);
++		// Using `.change` instead of `.start` because we want to start
++		// animation from the current opacity level, not blink it.
++		_a_opacity.change(1., st::notifyFastAnim);
+ 	}
+ }
+ 
+ void Widget::hideAnimated(float64 duration, const anim::transition &func) {
+ 	_hiding = true;
++	// Using `.start` instead of `.change` because we want to ensure the notification
++	// is fully restored before starting to hide it (it may not have been restored if
++	// the cursor has passed through it too quickly, see #28811).
+ 	_a_opacity.start([this] { opacityAnimationCallback(); }, 1., 0., duration, func);
+ }
+ 
+-- 
+2.47.1
+
