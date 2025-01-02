@@ -24,9 +24,9 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 pkgname=telegram-desktop-kolayne
-pkgver=5.9.2
-pkgrel=8
-arch=('any')
+pkgver=5.10.0
+pkgrel=1
+arch=('x86_64')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
 depends=('hunspell' 'ffmpeg' 'hicolor-icon-theme' 'lz4' 'minizip' 'openal'
@@ -68,7 +68,7 @@ prepare() {
     git fetch --prune{,-tags} --depth 1 origin "$override_checkout"
     git remote update origin  # Accept remote tags locally
     git checkout "$override_checkout" --force
-    git submodule update --init --recursive --recommend-shallow --depth 1
+    git submodule update --init --recursive --recommend-shallow --depth 1 --force
 }
 
 build() {
