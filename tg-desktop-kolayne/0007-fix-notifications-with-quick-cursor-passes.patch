@@ -58,7 +58,7 @@ index 5bd4344d8d..7c81282355 100644
 2.47.1
 
 
-From a00fac73603592f895904df52befc9f641e29cfc Mon Sep 17 00:00:00 2001
+From 0e40700df20c08093158e4ac2d82f98bcb7f1567 Mon Sep 17 00:00:00 2001
 From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
 Date: Wed, 1 Jan 2025 11:28:05 +0300
 Subject: [PATCH 2/2] Notifications: fix the use of `.start()`/`.change()`

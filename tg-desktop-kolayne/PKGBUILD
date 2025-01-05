@@ -25,7 +25,7 @@
 
 pkgname=telegram-desktop-kolayne
 pkgver=5.10.0
-pkgrel=2
+pkgrel=3
 arch=('x86_64')
 pkgdesc='Telegram messaging desktop app built locally'
 license=('GPL')
@@ -54,8 +54,8 @@ sha256sums=('faba5e9fd9694a82c8a461331cebf88bf3f3805aaacb6c1a7faeaaf59285c182'
             '867c3ae4fef7e57050e441380de2379db9c8233cc5d6a1578cc726d3145aa3f7'
             # 0004
             '29fee324ce78869f089902237c8038e684cb1be22726dca6d862c7abd5aa40f3'
-            '1bb6ce5f564c9b7f9e112534d2895d67824a4a5b5c052b2183d72032e63f7486'
-            '17c91ae5f4c605cfaf16c133c490583e2645ba839facd1886674da23e3280a69'
+            '1ef728f89a4ac668841c635ae00741e589fe8510c792633e0736b57624d41ccd'
+            '4ab5ed0ad4ca764b4a1afe965fbdc714b75959714eb9b9ad472cf33fdf192f15'
             '61ea9725d8c2fc14e7c0824204f0d48fe1f39bb97fd17a577e58eedac05ee457')
 
 # When set, forces the script to checkout `$override_checkout`

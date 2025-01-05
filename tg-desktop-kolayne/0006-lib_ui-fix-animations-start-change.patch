@@ -1,4 +1,4 @@
-From 07b90e9a4b8956a780a7f1752d59a29188d2d38a Mon Sep 17 00:00:00 2001
+From 1da57c5848448b433948a026f8a887942be00dd9 Mon Sep 17 00:00:00 2001
 From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
 Date: Tue, 31 Dec 2024 20:36:01 +0300
 Subject: [PATCH] Fix `Ui::Animations::Simple`'s `.start()` and `.change()`
@@ -8,43 +8,26 @@ Unlike the `.change()` method, which configures a running animation to
 go to a different state, the `.start()` method should first set the
 initial opacity value, then animate.
 
-This commit fixes this behavior. It changes the private `.prepare()`
-method to interpret negative `from` values as "unchanged from" (only
-available if the animation is already running), and fixes its usage in
-`.change()`.
+It is fixed by making sure the private `.prepare()` method always sets
+`from`, rather than ignoring it when the animation is already running.
 ---
- Telegram/lib_ui/ui/effects/animations.h | 19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ Telegram/lib_ui/ui/effects/animations.h | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
 diff --git a/Telegram/lib_ui/ui/effects/animations.h b/Telegram/lib_ui/ui/effects/animations.h
-index a918cfc..080ee0e 100644
+index a918cfc..c4cbb35 100644
 --- a/Telegram/lib_ui/ui/effects/animations.h
 +++ b/Telegram/lib_ui/ui/effects/animations.h
-@@ -120,6 +120,7 @@ private:
- 	template <typename Callback>
- 	[[nodiscard]] static decltype(auto) Prepare(Callback &&callback);
- 
-+	/// Passing `from < 0` leaves current value unchanged (animation must exist)
- 	void prepare(float64 from, crl::time duration);
- 	void startPrepared(
- 		float64 to,
-@@ -381,16 +382,26 @@ inline void Simple::change(
+@@ -381,16 +381,19 @@ inline void Simple::change(
  		anim::transition transition) {
  	Expects(_data != nullptr);
  
 -	prepare(0. /* ignored */, duration);
-+	prepare(-1 /* leave the old value */, duration);
++	prepare(_data->value /* keep the old value */, duration);
  	startPrepared(to, duration, transition);
  }
  
  inline void Simple::prepare(float64 from, crl::time duration) {
-+	// `from < 0` is to start from the current value. We must thus have
-+	// the current animation available.
-+	Expects(from >= 0 || _data);
-+	if (from < 0) {
-+		from = _data->value;
-+	}
-+
  	const auto isLong = (duration > kLongAnimationDuration);
 -	if (!_data) {
 +	if (_data) {
