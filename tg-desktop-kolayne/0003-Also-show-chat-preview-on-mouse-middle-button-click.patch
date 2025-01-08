@@ -11,9 +11,9 @@ diff --git a/Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp b/Telegram/So
 index a668fdd..a4d2a5e 100644
 --- a/Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp
 +++ b/Telegram/SourceFiles/dialogs/dialogs_inner_widget.cpp
-@@ -1833,7 +1833,7 @@ void InnerWidget::mousePressEvent(QMouseEvent *e) {
- 	setSearchedPressed(_searchedSelected);
+@@ -1805,7 +1805,7 @@ void InnerWidget::mousePressEvent(QMouseEvent *e) {
  	_pressedMorePosts = _selectedMorePosts;
+ 	_pressedChatTypeFilter = _selectedChatTypeFilter;
  
 -	const auto alt = (e->modifiers() & Qt::AltModifier);
 +	const auto alt = (e->modifiers() & Qt::AltModifier) || (_pressButton == Qt::MiddleButton);
