@@ -1,4 +1,4 @@
-From ab3836f7798e7622b52d8fcbbd07f396a25f8093 Mon Sep 17 00:00:00 2001
+From a3d55c1f983d2470d1d0587445d91fc8a5a1052c Mon Sep 17 00:00:00 2001
 From: Nikolay Nechaev <nikolay_nechaev@mail.ru>
 Date: Sat, 29 Jun 2024 18:43:58 +0300
 Subject: [PATCH] Use the absolute real path to a video for watch_later
@@ -8,7 +8,7 @@ Subject: [PATCH] Use the absolute real path to a video for watch_later
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/player/configfiles.c b/player/configfiles.c
-index 3ecb5a19c8..b8016e6a03 100644
+index 418937b11d..ad24137c6e 100644
 --- a/player/configfiles.c
 +++ b/player/configfiles.c
 @@ -16,6 +16,7 @@
@@ -19,8 +19,8 @@ index 3ecb5a19c8..b8016e6a03 100644
  #include <stddef.h>
  #include <stdbool.h>
  #include <sys/types.h>
-@@ -217,7 +218,7 @@ static char *mp_get_playback_resume_config_filename(struct MPContext *mpctx,
-     if (opts->ignore_path_in_watch_later_config && !mp_is_url(bstr0(path))) {
+@@ -220,7 +221,7 @@ static char *mp_get_playback_resume_config_filename(struct MPContext *mpctx,
+     } else if (opts->ignore_path_in_watch_later_config) {
          path = mp_basename(fname);
      } else {
 -        path = mp_normalize_path(tmp, fname);
@@ -29,5 +29,5 @@ index 3ecb5a19c8..b8016e6a03 100644
              goto exit;
      }
 -- 
-2.45.2
+2.49.0
 
