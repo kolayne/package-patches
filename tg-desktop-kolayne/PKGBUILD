@@ -1,30 +1,34 @@
 # Build instructions by Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
 
-# Basic USAGE:
-# 1. Set `pkgver` below to the version number you want to build.
-# 2. Build (as you would with `makepkg`)
+# Environment varaibles for build.
 #
-# The build process can be ADJUSTED with the following ENVIRONMENT VARIABLES:
-# - If `$override_checkout` is set to a git tag or commit (branch is not allowed),
-#   then that version is built instead of tag `v$pkgver`.
-# - If `$DONT_CLEAR_CACHE` is set to a non-empty value, the "Cleaning dangling cache"
-#   stage is skipped.
+# Required:
 #
-# Affects compilation flags for dependencies (but not the target of a final
-# cmake build):
-# - If `$LTO` is set to an empty value (e.g. by running `LTO= makepkg`), then
+# - `$tg_ver` - version of Telegram Desktop to build (e.g., 5.13.1).
+#
+# Adjust compilation of *dependencies*:
+# - If `$LTO` is set to an *empty* value (e.g. by running `LTO= makepkg`), then
 #   link-time optimization is disabled. In any other case (`$LTO` is unset or set
 #   to a non-empty string), LTO is enabled.
-# - If `$DEBUG` is unset or set to an empty value, then the release version is built.
-#   Otherwise a debug version is built.
+# - If `$DEBUG` is unset or set to an *empty* value, then the release versions are built.
+#   Otherwise, debug versions are built.
 #
-# Also note that after building the package, the script prunes the dangling
+# Adjust compilation of *Telegram Desktop* itself:
+# - `$build_type` sets the CMake build type (default is RelWithDebInfo).
+# - If `$override_checkout` is set to a git tag or commit (branch is not allowed),
+#   then that version is built instead of tag `v$tg_ver`.
+# - If `$DONT_CLEAR_CACHE` is set to a non-empty value, the "Cleaning dangling cache"
+#   stage is skipped (see below).
+#
+# Note that after building the package, the script prunes dangling
 # docker build cache (unless `DONT_CLEAR_CACHE`, see above), which may affect other
 # docker builds.
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
+build_type="${build_type:-RelWithDebInfo}"
+
 pkgname=telegram-desktop-kolayne
-pkgver=5.12.0
+pkgver="$tg_ver${override_checkout:+_$override_checkout}+$build_type"
 pkgrel=1
 arch=('x86_64')
 pkgdesc='Telegram messaging desktop app built locally'
@@ -50,24 +54,24 @@ sha256sums=('faba5e9fd9694a82c8a461331cebf88bf3f3805aaacb6c1a7faeaaf59285c182'
             'aa23bd98aec99fc5b42a305c73503d4e6bbf71617cf2ea3753fb52643cb4b5f0'
             '61ea9725d8c2fc14e7c0824204f0d48fe1f39bb97fd17a577e58eedac05ee457')
 
-# When set, forces the script to checkout `$override_checkout`
-# instead of `v$pkgver`
-#override_checkout=fb444e7dd42985104ec416cdc3545c554694017b
-
 DOCKER_IMAGE="tdesktop:centos_env"
 
 prepare() {
-    # Set `override_checkout` to `v$pkgver` if unset
-    override_checkout="${override_checkout:=v$pkgver}"
+    if [[ -z "$tg_ver" ]]; then
+        echo "Before running makepkg, please, set \$tg_ver to the Telegrm Desktop version to build" >&2
+        return 1
+    fi
+
+    checkout="${override_checkout:-v$tg_ver}"
 
     if [[ ! -d "$srcdir/$pkgname" ]]; then
         git clone --depth 1 --shallow-submodules https://github.com/telegramdesktop/tdesktop.git "$srcdir/$pkgname"
     fi
     cd "$srcdir/$pkgname"
 
-    git fetch --prune{,-tags} --depth 1 origin "$override_checkout"
+    git fetch --prune{,-tags} --depth 1 origin "$checkout"
     git remote update origin  # Accept remote tags locally
-    git checkout "$override_checkout" --force
+    git checkout "$checkout" --force
     git submodule update --init --recursive --recommend-shallow --depth 1 --force
 }
 
@@ -92,17 +96,17 @@ build() {
 
     # From the tdesktop docs:
     docker run --rm -it \
-        -v $PWD:/usr/src/tdesktop \
-        -e "CONFIG=Release" \
+        -u "$(id -u)" \
+        -v "$PWD":/usr/src/tdesktop \
+        -e "CONFIG=$build_type" \
         "$DOCKER_IMAGE" \
         /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
-        -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
         -D TDESKTOP_API_ID=611335 \
         -D TDESKTOP_API_HASH=d524b414d21f4d37f08684c1df41ac9c
 }
 
 package() {
-    install -Dm755 "$srcdir/$pkgname"/out/Release/Telegram "$pkgdir"/usr/bin/telegram-desktop
+    install -Dm755 "$srcdir/$pkgname"/out/"$build_type"/Telegram "$pkgdir"/usr/bin/telegram-desktop
     install -Dm644 "$srcdir/$pkgname"/lib/xdg/org.telegram.desktop.desktop "$pkgdir"/usr/share/applications/telegramdesktop.desktop
     for dim in 16 32 128 256 512; do
         install -Dm644 "$srcdir/$pkgname"/Telegram/Telegram/Images.xcassets/Icon.iconset/icon_${dim}x${dim}.png \
