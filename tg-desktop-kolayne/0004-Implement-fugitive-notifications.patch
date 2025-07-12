@@ -96,7 +96,7 @@ index e792ac7ef9..4ac1bbd8de 100644
 +		manager()->flipNotificationSide();
  	} else {
  		e->ignore();
- 		manager()->notificationActivated(myId());
+ 		manager()->notificationActivated(myId(), {
 diff --git a/Telegram/SourceFiles/window/notifications_manager_default.h b/Telegram/SourceFiles/window/notifications_manager_default.h
 index 7c81282355..1c7d3dc3a2 100644
 --- a/Telegram/SourceFiles/window/notifications_manager_default.h
