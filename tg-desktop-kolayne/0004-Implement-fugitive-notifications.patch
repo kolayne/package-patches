@@ -1,24 +1,24 @@
-From a9e2600d88aed4d24d3422b146c70182a7b610d0 Mon Sep 17 00:00:00 2001
-From: Nikolai Nechaev <nikolay_nechaev@mail.ru>
-Date: Thu, 2 Jan 2025 19:32:53 +0300
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Nikolai Nechaev <Nikolay_Nechaev@mail.ru>
+Date: Sat, 11 Oct 2025 13:10:40 +0900
 Subject: [PATCH] Implement fugitive notifications
 
 Right-clicking notifications will now cause them to jump to the
 opposite side of the screen (left and right).
 
 The patch also contains a commented out implementation of the behavior
-when they jump away from the cursor when it hovers them, without the
-need to click.
+when they jump away from the cursor hovering them, unless the
+control key is held.
 ---
- .../window/notifications_manager_default.cpp  | 27 ++++++++++++++++---
+ .../window/notifications_manager_default.cpp  | 26 ++++++++++++++++---
  .../window/notifications_manager_default.h    |  7 +++++
- 2 files changed, 30 insertions(+), 4 deletions(-)
+ 2 files changed, 29 insertions(+), 4 deletions(-)
 
 diff --git a/Telegram/SourceFiles/window/notifications_manager_default.cpp b/Telegram/SourceFiles/window/notifications_manager_default.cpp
-index e792ac7ef9..4ac1bbd8de 100644
+index bd4e460..79d6339 100644
 --- a/Telegram/SourceFiles/window/notifications_manager_default.cpp
 +++ b/Telegram/SourceFiles/window/notifications_manager_default.cpp
-@@ -46,15 +46,14 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+@@ -47,12 +47,11 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
  namespace Window {
  namespace Notifications {
  namespace Default {
@@ -27,16 +27,13 @@ index e792ac7ef9..4ac1bbd8de 100644
 -[[nodiscard]] QPoint notificationStartPosition() {
 +[[nodiscard]] QPoint Manager::notificationStartPosition() const {
  	const auto corner = Core::App().settings().notificationsCorner();
- 	const auto window = Core::App().activePrimaryWindow();
- 	const auto r = window
- 		? window->widget()->desktopRect()
- 		: QGuiApplication::primaryScreen()->availableGeometry();
+ 	const auto r = NotificationDisplayRect(Core::App().activePrimaryWindow());
 -	const auto isLeft = Core::Settings::IsLeftCorner(corner);
 +	const auto isLeft = _isLeft;
  	const auto isTop = Core::Settings::IsTopCorner(corner);
  	const auto x = (isLeft == rtl())
  		? (r.x() + r.width() - st::notifyWidth - st::notifyDeltaX)
-@@ -63,6 +62,8 @@ namespace {
+@@ -61,6 +60,8 @@ namespace {
  	return QPoint(x, y);
  }
  
@@ -45,7 +42,7 @@ index e792ac7ef9..4ac1bbd8de 100644
  internal::Widget::Direction notificationShiftDirection() {
  	auto isTop = Core::Settings::IsTopCorner(Core::App().settings().notificationsCorner());
  	return isTop ? internal::Widget::Direction::Down : internal::Widget::Direction::Up;
-@@ -76,6 +77,7 @@ std::unique_ptr<Manager> Create(System *system) {
+@@ -74,6 +75,7 @@ std::unique_ptr<Manager> Create(System *system) {
  
  Manager::Manager(System *system)
  : Notifications::Manager(system)
@@ -53,7 +50,7 @@ index e792ac7ef9..4ac1bbd8de 100644
  , _inputCheckTimer([=] { checkLastInput(); }) {
  	system->settingsChanged(
  	) | rpl::start_with_next([=](ChangeType change) {
-@@ -461,6 +463,11 @@ Manager::~Manager() {
+@@ -478,6 +480,11 @@ Manager::~Manager() {
  	clearAllFast();
  }
  
@@ -65,7 +62,7 @@ index e792ac7ef9..4ac1bbd8de 100644
  namespace internal {
  
  Widget::Widget(
-@@ -642,6 +649,8 @@ Notification::Notification(
+@@ -661,6 +668,8 @@ Notification::Notification(
  , _fromScheduled(fromScheduled)
  , _close(this, st::notifyClose)
  , _reply(this, tr::lng_notification_reply(), st::defaultBoxButton) {
@@ -74,7 +71,7 @@ index e792ac7ef9..4ac1bbd8de 100644
  	Lang::Updated(
  	) | rpl::start_with_next([=] {
  		refreshLang();
-@@ -1196,11 +1205,21 @@ void Notification::startHiding() {
+@@ -1219,11 +1228,20 @@ void Notification::startHiding() {
  	hideSlow();
  }
  
@@ -92,13 +89,12 @@ index e792ac7ef9..4ac1bbd8de 100644
  
  	if (e->button() == Qt::RightButton) {
 -		unlinkHistoryInManager();
-+		//unlinkHistoryInManager();
 +		manager()->flipNotificationSide();
  	} else {
  		e->ignore();
  		manager()->notificationActivated(myId(), {
 diff --git a/Telegram/SourceFiles/window/notifications_manager_default.h b/Telegram/SourceFiles/window/notifications_manager_default.h
-index 7c81282355..1c7d3dc3a2 100644
+index 7a23561..1e8c4e8 100644
 --- a/Telegram/SourceFiles/window/notifications_manager_default.h
 +++ b/Telegram/SourceFiles/window/notifications_manager_default.h
 @@ -45,6 +45,10 @@ public:
@@ -112,7 +108,7 @@ index 7c81282355..1c7d3dc3a2 100644
  	template <typename Method>
  	void enumerateNotifications(Method method) {
  		for (const auto &notification : _notifications) {
-@@ -96,6 +100,8 @@ private:
+@@ -97,6 +101,8 @@ private:
  
  	void subscribeToSession(not_null<Main::Session*> session);
  
@@ -121,7 +117,7 @@ index 7c81282355..1c7d3dc3a2 100644
  	std::vector<std::unique_ptr<Notification>> _notifications;
  	base::flat_map<
  		not_null<Main::Session*>,
-@@ -241,6 +247,7 @@ protected:
+@@ -247,6 +253,7 @@ protected:
  	void enterEventHook(QEnterEvent *e) override;
  	void leaveEventHook(QEvent *e) override;
  	void paintEvent(QPaintEvent *e) override;
@@ -130,5 +126,5 @@ index 7c81282355..1c7d3dc3a2 100644
  	bool eventFilter(QObject *o, QEvent *e) override;
  
 -- 
-2.47.1
+2.51.0
 

@@ -1,5 +1,7 @@
 # Build instructions by Nikolay Nechaev <Nikolay_Nechaev@mail.ru>
 
+# EXAMPLE RUN: `tg_ver=6.2.2 build_type=Release makepkg -s`
+
 # Environment varaibles for build.
 #
 # Required:
@@ -77,7 +79,7 @@ sha256sums=('faba5e9fd9694a82c8a461331cebf88bf3f3805aaacb6c1a7faeaaf59285c182'
             '48fbfe738918479018cfa2951f81d9a69a465d21751dd093e0da2684b6decf93'
             'de84d386a3fdb271953c3c246e3ef2d335610a1ac3ffc755f3ad7fdf2fe0db5a'
             'aa23bd98aec99fc5b42a305c73503d4e6bbf71617cf2ea3753fb52643cb4b5f0'
-            '27dcfd16a8c05e60df3a265c7c1909920c2e1e0d391e0564ef547c3a1181982e')
+            '62b5aeddd8e7ef08113128b969ac83a6fc943be138d5b330aac64742b027ee95')
 
 DOCKER_IMAGE="tdesktop:centos_env"
 
@@ -104,6 +106,7 @@ build() {
     cd "$srcdir/$pkgname"
 
     for patch in "${patches[@]}"; do
+        echo Applying "$patch"
         git apply ../"$patch"
     done
 
