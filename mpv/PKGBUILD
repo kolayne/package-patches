@@ -51,7 +51,7 @@ _opt_features=(
 
 pkgname=mpv-kolayne
 _gitname=mpv
-pkgver=0.40.0_9_g1b231b4e57
+pkgver=0.41.0_7_g5820906024
 pkgrel=1
 pkgdesc='Video player based on MPlayer/mplayer2 (git version)'
 arch=('i686' 'x86_64' 'armv6h' 'armv7h' 'aarch64')
@@ -137,7 +137,7 @@ build() {
   # Downside is wasted recompilation.
   rm -rf build
 
-  git am ../495-updated.patch
+  git apply ../495-updated.patch
 
   meson setup build \
         --prefix=/usr \
