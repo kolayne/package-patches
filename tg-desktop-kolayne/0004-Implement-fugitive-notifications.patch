@@ -49,7 +49,7 @@ index bd4e460..79d6339 100644
 +, _isLeft(Core::Settings::IsLeftCorner(Core::App().settings().notificationsCorner()))
  , _inputCheckTimer([=] { checkLastInput(); }) {
  	system->settingsChanged(
- 	) | rpl::start_with_next([=](ChangeType change) {
+ 	) | rpl::on_next([=](ChangeType change) {
 @@ -478,6 +480,11 @@ Manager::~Manager() {
  	clearAllFast();
  }
@@ -69,7 +69,7 @@ index bd4e460..79d6339 100644
 +	//setMouseTracking(true);
 +
  	Lang::Updated(
- 	) | rpl::start_with_next([=] {
+ 	) | rpl::on_next([=] {
  		refreshLang();
 @@ -1219,11 +1228,20 @@ void Notification::startHiding() {
  	hideSlow();
