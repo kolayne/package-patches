@@ -80,7 +80,8 @@ sha256sums=('faba5e9fd9694a82c8a461331cebf88bf3f3805aaacb6c1a7faeaaf59285c182'
             'de84d386a3fdb271953c3c246e3ef2d335610a1ac3ffc755f3ad7fdf2fe0db5a'
             'aa23bd98aec99fc5b42a305c73503d4e6bbf71617cf2ea3753fb52643cb4b5f0'
             '3272c82237ffb0c380b1e913a11b3bd7d44a6393d24248a0c10f8fae7883cd25')
-options=(!strip)
+# Unless building as Release, do not strip the executables (to keep debug info)
+options=($([ "$build_type" != Release ] && echo '!strip'))
 
 DOCKER_IMAGE="tdesktop:centos_env"
 
