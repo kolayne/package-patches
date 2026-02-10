@@ -16,7 +16,11 @@
 #   Otherwise, debug versions are built.
 #
 # Adjust compilation of *Telegram Desktop* itself:
-# - `$build_type` sets the CMake build type (default is Release).
+# - `$build_type` sets the CMake build type. Default: Release.
+# - `$cpuset_cpus` set of CPU cores (0-indexed) that will be available to the building
+#   docker container. This setting affects the number of build jobs that will run
+#   in parallel, and, consequently, the memory usage (both have drastical impact
+#   on performance). Default: all cores.
 # - If `$override_checkout` is set to a git tag or commit (branch is not allowed),
 #   then that version is built instead of tag `v$tg_ver`.
 # - If `$DONT_CLEAR_CACHE` is set to a non-empty value, the "Cleaning dangling cache"
@@ -28,6 +32,8 @@
 # More info: https://docs.docker.com/engine/reference/commandline/builder_prune/
 
 build_type="${build_type:-Release}"
+# Cannot use `nproc --ignore`: if there is 1 core, I need the value 0
+cpuset_cpus="${cpuset_cpus:-0-$(("$(nproc)" - 1))}"
 
 pkgname=telegram-desktop-kolayne
 pkgver="$tg_ver${override_checkout:+_$override_checkout}+$build_type"
@@ -134,6 +140,7 @@ build() {
         -u "$(id -u)" \
         -v "$PWD":/usr/src/tdesktop \
         -e "CONFIG=$build_type" \
+        --cpuset-cpus "$cpuset_cpus" \
         "$DOCKER_IMAGE" \
         /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
         -D TDESKTOP_API_ID=611335 \
