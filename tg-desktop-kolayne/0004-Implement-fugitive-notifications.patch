@@ -68,9 +68,9 @@ index bd4e460..79d6339 100644
  , _reply(this, tr::lng_notification_reply(), st::defaultBoxButton) {
 +	//setMouseTracking(true);
 +
+ 	_reply->setTextTransform(Ui::RoundButtonTextTransform::ToUpper);
+
  	Lang::Updated(
- 	) | rpl::on_next([=] {
- 		refreshLang();
 @@ -1219,11 +1228,20 @@ void Notification::startHiding() {
  	hideSlow();
  }
