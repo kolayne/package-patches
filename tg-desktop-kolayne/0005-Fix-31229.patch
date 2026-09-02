@@ -1,0 +1,50 @@
+From bc919721f5fc78f8cedceb222c4346f7eddec29a Mon Sep 17 00:00:00 2001
+From: Nikolai Nechaev <Nikolay_Nechaev@mail.ru>
+Date: Wed, 2 Sep 2026 16:23:04 +0400
+Subject: [PATCH] player: Report correct status when stopped.
+
+Internally, fixes the media player to report that there is no current
+audio after a voice/music is stopped.
+
+Externally, this fixes the state reported by system media controls
+after a story with a video has stopped playing. See the issue for
+details.
+
+Fixes #31229.
+
+Plus a minor logic duplication fix.
+---
+ Telegram/SourceFiles/media/player/media_player_instance.cpp  | 4 ++++
+ Telegram/SourceFiles/media/system_media_controls_manager.cpp | 4 +---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/Telegram/SourceFiles/media/player/media_player_instance.cpp b/Telegram/SourceFiles/media/player/media_player_instance.cpp
+index 487f8e0e290d45..cd647b7d614e76 100644
+--- a/Telegram/SourceFiles/media/player/media_player_instance.cpp
++++ b/Telegram/SourceFiles/media/player/media_player_instance.cpp
+@@ -950,6 +950,10 @@ void Instance::stop(AudioMsgId::Type type, bool asFinished) {
+ 		if (type == AudioMsgId::Type::Song) {
+ 			_listenTracker->finalize();
+ 		}
++		// Reset `data->current`, so that subsequent calls to `.getData`
++		// report accurate information on the current state (i.e., not playing).
++		// See #31229 for details.
++		data->current = AudioMsgId();
+ 		data->resumeOnCallEnd = false;
+ 		_playerStopped.fire_copy({type});
+ 	}
+diff --git a/Telegram/SourceFiles/media/system_media_controls_manager.cpp b/Telegram/SourceFiles/media/system_media_controls_manager.cpp
+index 4cadadd051be90..549ffc13e92040 100644
+--- a/Telegram/SourceFiles/media/system_media_controls_manager.cpp
++++ b/Telegram/SourceFiles/media/system_media_controls_manager.cpp
+@@ -175,9 +175,7 @@ void SystemMediaControlsManager::syncPlayerStateToControls() {
+ 		= base::Platform::SystemMediaControls::PlaybackStatus;
+ 	using namespace Media::Player;
+ 	const auto mediaPlayer = Media::Player::instance();
+-	const auto type = mediaPlayer->current(AudioMsgId::Type::Song)
+-		? AudioMsgId::Type::Song
+-		: AudioMsgId::Type::Voice;
++	const auto type = mediaPlayer->getActiveType();
+ 	const auto current = mediaPlayer->current(type);
+ 	if (!current) {
+ 		_cachedMediaView.clear();
