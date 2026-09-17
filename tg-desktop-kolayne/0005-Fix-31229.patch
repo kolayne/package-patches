@@ -1,4 +1,4 @@
-From bc919721f5fc78f8cedceb222c4346f7eddec29a Mon Sep 17 00:00:00 2001
+From fd68cc78d36503fc2aefbb762c440beb5986ebfa Mon Sep 17 00:00:00 2001
 From: Nikolai Nechaev <Nikolay_Nechaev@mail.ru>
 Date: Wed, 2 Sep 2026 16:23:04 +0400
 Subject: [PATCH] player: Report correct status when stopped.
@@ -34,7 +34,7 @@ index 487f8e0e290d45..cd647b7d614e76 100644
  		_playerStopped.fire_copy({type});
  	}
 diff --git a/Telegram/SourceFiles/media/system_media_controls_manager.cpp b/Telegram/SourceFiles/media/system_media_controls_manager.cpp
-index 4cadadd051be90..549ffc13e92040 100644
+index c51df7755283b9..c4aecae59b30f7 100644
 --- a/Telegram/SourceFiles/media/system_media_controls_manager.cpp
 +++ b/Telegram/SourceFiles/media/system_media_controls_manager.cpp
 @@ -175,9 +175,7 @@ void SystemMediaControlsManager::syncPlayerStateToControls() {
@@ -47,4 +47,4 @@ index 4cadadd051be90..549ffc13e92040 100644
 +	const auto type = mediaPlayer->getActiveType();
  	const auto current = mediaPlayer->current(type);
  	if (!current) {
- 		_cachedMediaView.clear();
+ 		_cachedMediaView = nullptr;
