@@ -101,8 +101,9 @@ sha256sums=('faba5e9fd9694a82c8a461331cebf88bf3f3805aaacb6c1a7faeaaf59285c182'
             'b4eaa609c270d336c73d3fac1a412c15e8f6c3d2ce2413d33f361b9af6f9dbb6'
             'f3baa7f57301937cd54520582299fb8debfbf6d7c9b9d6a4fef5075b24dd6222'
 )
-# Unless building as Release, do not strip the executables (to keep debug info)
-options=($([ "$build_type" != Release ] && echo '!strip'))
+# - Don't create a separate debug package
+# - Unless building as Release, do not strip the executables (to keep debug info)
+options=('!debug' $([ "$build_type" != Release ] && echo '!strip'))
 
 DOCKER_IMAGE="tdesktop:centos_env"
 
