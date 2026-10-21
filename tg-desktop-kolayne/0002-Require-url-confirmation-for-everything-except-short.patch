@@ -1,0 +1,28 @@
+From 72e2981d42b3d317463a4dbd2d42d5e351715c6c Mon Sep 17 00:00:00 2001
+From: Nikolai Nechaev <Nikolay_Nechaev@mail.ru>
+Date: Wed, 21 Oct 2026 10:34:33 +0400
+Subject: [PATCH 2/4] Require url confirmation for everything except short links
+
+Require confirmations when following hyperlinks other than short links.
+That includes telegram.org, telegra.ph, etc.
+---
+ Telegram/SourceFiles/core/click_handler_types.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/Telegram/SourceFiles/core/click_handler_types.cpp b/Telegram/SourceFiles/core/click_handler_types.cpp
+index 3063d4070f..ba511f0568 100644
+--- a/Telegram/SourceFiles/core/click_handler_types.cpp
++++ b/Telegram/SourceFiles/core/click_handler_types.cpp
+@@ -193,8 +193,7 @@ constexpr auto kReminderSetToastDuration = 4 * crl::time(1000);
+ [[nodiscard]] bool HiddenUrlRequiresConfirmation(
+ 		const QUrl &url,
+ 		const ClickHandlerContext &my) {
+-	return !HostInDomains(url.host(), WhitelistedDomains(my))
+-		|| IsTelegramShortLinkHost(url);
++	return IsTelegramShortLinkHost(url);
+ }
+ 
+ [[nodiscard]] bool IsWebAuthTokenPart(QStringView part) {
+-- 
+2.56.0
+

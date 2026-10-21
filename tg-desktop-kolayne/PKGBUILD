@@ -88,14 +88,14 @@ conflicts=('telegram-desktop')
 
 patches=('0000-InputField-only-soften-linebreaks-in-the-same-format.patch'
          '0001-Moved-notifications-by-a-constant.patch'
-         '0002-Consider-only-t.me-domain-as-internal.patch'
+         '0002-Require-url-confirmation-for-everything-except-short.patch'
          '0003-Also-show-chat-preview-on-mouse-middle-button-click.patch'
          '0004-Implement-fugitive-notifications.patch'
 )
 source=(${patches[@]})
 sha256sums=('faba5e9fd9694a82c8a461331cebf88bf3f3805aaacb6c1a7faeaaf59285c182'
             '48fbfe738918479018cfa2951f81d9a69a465d21751dd093e0da2684b6decf93'
-            'de84d386a3fdb271953c3c246e3ef2d335610a1ac3ffc755f3ad7fdf2fe0db5a'
+            '6313b1bba3d8552e7e7d5277b8f1026feae6fc49f7bf011595bc47c2390b6ee6'
             'aa23bd98aec99fc5b42a305c73503d4e6bbf71617cf2ea3753fb52643cb4b5f0'
             'b4eaa609c270d336c73d3fac1a412c15e8f6c3d2ce2413d33f361b9af6f9dbb6'
 )
